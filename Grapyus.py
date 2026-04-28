@@ -21,7 +21,6 @@ music_volume = 0.7
 CENTER = width//2, height//2
 SPRITE_DIR = ".\\Sprites\\"
 SOUND_DIR = ".\\Sounds\\"
-TTS_DIR = "..\\TTS\\"
 SAVE_DIR = ".\\Save\\"
 TEXT_YELLOW = Fore.YELLOW
 TEXT_GREEN = Fore.GREEN
