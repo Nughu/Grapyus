@@ -1,0 +1,691 @@
+import contextlib
+with contextlib.redirect_stdout(None):
+    import pygame
+from pygame.locals import *
+from colorama import Fore, Style
+from time import sleep, time
+from random import randint, choice
+import os
+import sys
+import threading
+
+# -----------------------------------------------------------------------------------------------------------------------------
+
+# General Settings
+width, height = 1280, 720
+music_volume = 0.75
+Insults_enabled = False
+
+# -----------------------------------------------------------------------------------------------------------------------------
+
+# Constants
+CENTER = width//2, height//2
+SPRITE_DIR = ".\\Sprites\\"
+SOUND_DIR = ".\\Sounds\\"
+TTS_DIR = "..\\TTS\\"
+SAVE_DIR = ".\\Save\\"
+TEXT_YELLOW = Fore.YELLOW
+TEXT_GREEN = Fore.GREEN
+TEXT_RED = Fore.RED
+TEXT_CYAN = Fore.CYAN
+SHIP_SCALE = width//17, height//17                  # Scale to fit aspect ratio of sprite
+FLAME_SCALE = width//17, (width//17)*0.8666         # Scale to fit aspect ratio of sprite
+ARROW_SCALE = width//11, (width//11)*0.5625         # Scale to fit aspect ratio of sprite
+STARS_WIDTH, STARS_HEIGHT = 1498, 1060
+STARS_SCALE = 1.5
+STARS_EXITFRAME = 0 - (STARS_WIDTH * STARS_SCALE)
+MOVE_SPEED = 4
+ARROW_SPEED = 7
+ARROW_POINTS = 10
+PLAYER_PROJECTILE_BASE_SPEED = 10
+SHIPEXP_FRAME_DELAY = 6
+NORMAL_FIRERATE = 0.4                               # delay between shots in normal fire mode (in seconds)
+
+# -----------------------------------------------------------------------------------------------------------------------------
+
+# Pygame Init
+pygame.init()
+screen = pygame.display.set_mode((width, height), display=0, vsync=0)
+
+# Initial terminal clear
+clear = lambda: os.system('cls')
+clear()
+
+# -----------------------------------------------------------------------------------------------------------------------------
+
+# Classes
+class PlayerProjectile:
+    def __init__(self, x, y, color, size, speed):
+        self.rect = pygame.Rect(x, y, size, size)
+        self.color = color
+        self.speed = speed
+    def update(self):
+        self.rect.x += self.speed
+    def draw(self):
+        pygame.draw.rect(screen, self.color, self.rect)
+    def check(self):
+        for enemy in enemies:
+            if self.rect.colliderect(enemy.hitbox):
+                explosions.append(Explosion(enemy.rect.center, enemy.explosion_frames))
+                global point_count
+                point_count += enemy.points
+                AnnouncePoints()
+                DifficultyCheck()
+                if self in player_projectiles:
+                    player_projectiles.remove(self)
+                enemies.remove(enemy)
+                ExplosionSound()
+
+class EnemyProjectile:
+    def __init__(self, x, y, color, size, speed):
+        self.rect = pygame.Rect(x, y, size, size)
+        self.color = color
+        self.speed = speed
+    def update(self):
+        self.rect.x += self.speed
+    def draw(self):
+        pygame.draw.rect(screen, self.color, self.rect)
+
+class Explosion:
+    def __init__(self, center, frames, frame_delay=3, is_player=False):
+        self.is_player = is_player
+        self.frames = frames
+        self.frame_index = 0
+        self.tick = 0
+        self.frame_delay = frame_delay
+        self.rect = self.frames[0].get_rect(center=center)
+
+    def update(self):
+        self.tick += 1
+        if self.tick >= self.frame_delay:
+            self.tick = 0
+            self.frame_index += 1
+        if self.frame_index >= len(self.frames):
+            explosions.remove(self)
+            if self.is_player:
+                GameOver()
+    
+    def draw(self):
+        if self.frame_index < len(self.frames):
+            screen.blit(self.frames[self.frame_index], self.rect)
+
+class Arrow:
+    def __init__(self, x, y, size, speed):
+        self.explosion_frames = ARROW_EXPLOSION_FRAMES
+        self.points = ARROW_POINTS
+        self.sprite = LoadImg("Arrow.png", size)
+        self.flame = LoadImg("ArrowFlame.png", size)
+        self.rect = self.sprite.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.size_x = size[0]
+        self.size_y = size[1]
+        self.hitbox = self.rect.inflate(
+            -self.rect.width * 0.1,
+            -self.rect.height * 0.1
+        )
+        self.speed = speed
+    def update(self):
+        self.rect.x -= self.speed
+        self.rect.y += randint(-1, 1)                           # Vertical wiggle
+        self.flame.set_alpha(randint(150, 190))
+        self.hitbox.center = self.rect.center
+    def draw(self):
+        screen.blit(self.sprite, self.rect)
+        screen.blit(self.flame, (self.rect.x + self.size_x, self.rect.y))
+
+# -----------------------------------------------------------------------------------------------------------------------------
+
+# Functions
+def LoadImg(image, size):
+    img_unscaled = pygame.image.load(SPRITE_DIR + image)
+    img_unscaled.convert()
+    img = pygame.transform.scale(img_unscaled, size) 
+    return img
+
+def LoadGame():
+    with open ((SAVE_DIR + "save.lol"), "r") as savefile:
+        loaded_game = savefile.read()
+        savefile.close()
+        try:
+            return int(loaded_game)
+        except ValueError:
+            return 0
+
+def SaveGame():
+    with open ((SAVE_DIR + "save.lol"), "w+") as savefile:
+        savefile.write(str(point_count))
+        savefile.close()
+
+def fade_background():
+    global background
+    global R_fade
+    global R_fade_up
+    global G_fade
+    global G_fade_up
+    global B_fade
+    global B_fade_up
+    global fade_tick
+    # Background Color Fade
+    if R_fade:
+        if R_fade_up:
+            if fade_tick:
+                background[0] += 1
+                fade_tick = False
+            else:
+                fade_tick = True
+        else:
+            if fade_tick:
+                background[0] -= 1
+                fade_tick = False
+            else:
+                fade_tick = True
+        if background[0] == 0:
+            R_fade_up = True
+            R_fade = False
+            G_fade = True
+        if background[0] == 40:
+            R_fade_up = False
+            R_fade = False
+            G_fade = True
+
+    if G_fade:
+        if  G_fade_up:
+            if fade_tick:
+                background[1] += 1
+                fade_tick = False
+            else:
+                fade_tick = True
+        else:
+            if fade_tick:
+                background[1] -= 1
+                fade_tick = False
+            else:
+                fade_tick = True
+        if background[1] == 0:
+            G_fade_up = True
+            G_fade = False
+            B_fade = True
+        if background[1] == 40:
+            G_fade_up = False
+            G_fade = False
+            B_fade = True
+    
+    if B_fade:
+        if B_fade_up:
+            if fade_tick:
+                background[2] += 1
+                fade_tick = False
+            else:
+                fade_tick = True
+        else:
+            if fade_tick:
+                background[2]  -= 1
+                fade_tick = False
+            else:
+                fade_tick = True
+        if background[2] == 0:
+            B_fade_up = True
+            B_fade = False
+            R_fade = True
+        if background[2] == 40:
+            B_fade_up = False
+            B_fade = False
+            R_fade = True
+    screen.fill(background)
+
+def move_stars():
+    # Get global variables
+    global stars1_curpos_x
+    global stars1_curpos_y
+    global stars2_curpos_x
+    global stars2_curpos_y
+    global held_keys
+    # Move back to start
+    if stars1_curpos_x <= STARS_EXITFRAME:
+        stars1_curpos_x, stars1_curpos_y = (STARS_WIDTH * STARS_SCALE), 0
+    if stars2_curpos_x <= STARS_EXITFRAME:
+        stars2_curpos_x, stars2_curpos_y = (STARS_WIDTH * STARS_SCALE), 0
+            # print(stars1_curpos_x, stars2_curpos_x)
+    # Do movement
+    if "Right" in held_keys:
+        stars1_curpos_x -= 4
+        stars2_curpos_x -= 4
+    elif "Left" in held_keys:
+        stars1_curpos_x -= 2
+        stars2_curpos_x -= 2
+    else:
+        stars1_curpos_x -= 3
+        stars2_curpos_x -= 3
+    # Flicker
+    stars1.set_alpha(randint(170, 175))
+    stars2.set_alpha(randint(170, 175))
+    # Draw Stars
+    screen.blit(stars1, [stars1_curpos_x, stars1_curpos_y])
+    screen.blit(stars2, [stars2_curpos_x, stars2_curpos_y])
+
+def ClearFont():
+    print(Style.RESET_ALL + "")
+
+def GameExit():
+    PlayMusic("gameover.ogg")
+    if Insults_enabled:
+        global tts_engine
+        tts_engine.stop()
+    end_screen = LoadImg("EndScreen.png", (width, height))
+    screen.fill([255, 255, 255])
+    screen.blit(end_screen, (0, 0))
+    clock.tick(60)
+    pygame.display.flip()
+    time_end = time()
+    clear()
+    print(TEXT_YELLOW + "- GAME END -\n")
+    print(TEXT_YELLOW + "Points collected:  " + TEXT_GREEN + str(point_count))
+    print(TEXT_YELLOW + "Time survived:  " + TEXT_GREEN + str(int(time_end - time_start)) + " Seconds")
+    if point_count > high_score:
+            print(TEXT_GREEN + "New Highscore!")
+            SaveGame()
+    ClearFont()
+    sleep(5)
+    pygame.quit()
+    sys.exit(0)
+
+def GameOver():
+    pygame.mixer.music.stop()
+    screen.fill("red")
+    pygame.display.flip()
+    time_end = time()
+    clear()
+    print(TEXT_RED + "- GAME OVER -")
+    print(TEXT_YELLOW + "Points collected:  " + TEXT_GREEN + str(point_count))
+    print(TEXT_YELLOW + "Time survived:  " + TEXT_GREEN + str(int(time_end - time_start)) + " Seconds")
+    if point_count > high_score:
+            print(TEXT_GREEN + "New Highscore!")
+            SaveGame()
+    sleep(1)
+    PlayMusic("gameover.ogg")
+    ClearFont()
+    end_screen = LoadImg("EndScreen.png", (width, height))
+    screen.fill("white")
+    screen.blit(end_screen, (0, 0))
+    pygame.display.flip()
+    # gameover_cycle = True
+    # while gameover_cycle:
+    #     sleep(0.1)
+    #     background[1] += 5
+    #     background[2] += 5
+    #     screen.fill(background)
+    #     screen.blit(end_screen, (0, 0))
+    #     pygame.display.flip()
+    #     if background[1] == 255:
+    #         gameover_cycle = False
+    sleep(5)
+    pygame.quit()
+    os._exit(0)
+
+def PlayerDead():
+    global game_over
+    game_over = True
+    explosions.append(Explosion(ship_rect.center, SHIP_EXPLOSION_FRAMES, SHIPEXP_FRAME_DELAY, is_player=True))
+    ExplosionSound("player")
+
+def PlayMusic(filename=-1):
+    if filename == -1:
+        # if pygame.mixer.music.get_busy():
+        #     pygame.mixer.fadeout(500)
+        #     sleep(0.5)
+        pygame.mixer.music.load((SOUND_DIR + "Music\\" + MUSIC_PLAYLIST[current_track - 1]))
+    else:
+        # if pygame.mixer.music.get_busy():
+        #     pygame.mixer.music.stop()
+        pygame.mixer.music.load((SOUND_DIR + "Music\\" + filename))
+    # Start Music Track
+    pygame.mixer.music.set_volume(music_volume)
+    pygame.mixer.music.play(0, 0.0)
+
+def PlayerShoot(projectile_mode):
+    if projectile_mode == "normal":
+        player_projectiles.append(
+            PlayerProjectile(
+                ship_rect.x + ship_size_x,          # Projectile X in front of ship
+                ship_rect.y + ship_size_y // 2,     # Projectile Y at middle of ship height
+                [25, 235, 255],                     # Projectile color light blue
+                height // 100,                      # Projectile size a hundredth of screen height
+                PLAYER_PROJECTILE_BASE_SPEED        # Projectile speed basic
+            )
+        )
+        pygame.mixer.Sound.play(SHOOT_SOUND_NORMAL)
+
+def ExplosionSound(type=-1):
+    if type == "player":
+        pygame.mixer.Sound.play(PLAYER_EXPLOSION_SOUND)
+    else:
+        pygame.mixer.Sound.play(choice(EXPLOSION_SOUNDS))
+
+def SpawnArrow():
+    enemies.append(
+        Arrow(
+            width,                                  # Arrow X on right side of screen
+            randint(0, height - ARROW_SCALE[0]),    # Arrow Y somewhere on screen
+            ARROW_SCALE,                            # Arrow size at ARROW_SCALE
+            ARROW_SPEED                             # Arrow speed at ARROW_SPEED
+        )
+    )
+
+def AnnouncePoints():
+    clear()
+    print(TEXT_YELLOW + "Points:  " + TEXT_GREEN + str(point_count))
+
+def DifficultyCheck():
+    if point_count >= 10000:
+        print("TEMP")
+    elif point_count >= 200:
+        global level
+        level += 1
+
+# Insult Function
+if Insults_enabled:
+    import pyttsx3
+    def InsultLoop():
+        global tts_engine
+        while True:
+            if game_over:
+                # If game is over, taunt player
+                insult = tts_engine.say("Hahahahahaha you're so bad, " + str(choice(insults_pronouns)) + " " + choice(insults_adjectives) + " " + choice(insults_adjectives) + " " + str(choice(insults_nouns)) + ".")
+            else:
+                # While game is running, say insult
+                insult = str(choice(insults_pronouns) + " " + choice(insults_adjectives) + " " + choice(insults_nouns) + "!")
+            tts_engine.say(insult)
+            tts_engine.startLoop()
+            tts_engine.endLoop()
+            if game_over:
+                break
+            else:
+                sleep(3)
+
+# -----------------------------------------------------------------------------------------------------------------------------
+
+# Explosion Frames
+ARROW_EXPLOSION_SCALE = width//13, width//13
+ARROW_EXPLOSION_FRAMES = [
+    LoadImg("Explosions\\Arrow\\1.png", ARROW_EXPLOSION_SCALE),
+    LoadImg("Explosions\\Arrow\\2.png", ARROW_EXPLOSION_SCALE),
+    LoadImg("Explosions\\Arrow\\3.png", ARROW_EXPLOSION_SCALE),
+    LoadImg("Explosions\\Arrow\\4.png", ARROW_EXPLOSION_SCALE)
+]
+SHIP_EXPLOSION_SCALE = width//10, width//10
+SHIP_EXPLOSION_FRAMES = [
+    LoadImg("Explosions\\Ship\\1.png", ARROW_EXPLOSION_SCALE),
+    LoadImg("Explosions\\Ship\\2.png", ARROW_EXPLOSION_SCALE),
+    LoadImg("Explosions\\Ship\\3.png", ARROW_EXPLOSION_SCALE),
+    LoadImg("Explosions\\Ship\\4.png", ARROW_EXPLOSION_SCALE)
+]
+
+# Sounds
+SHOOT_SOUND_NORMAL = pygame.mixer.Sound(SOUND_DIR + "Player\\shoot_normal.ogg")
+EXPLOSION_SOUNDS = [
+    pygame.mixer.Sound(SOUND_DIR + "Explosion\\1.ogg"),
+    pygame.mixer.Sound(SOUND_DIR + "Explosion\\2.ogg"),
+    pygame.mixer.Sound(SOUND_DIR + "Explosion\\3.ogg"),
+    pygame.mixer.Sound(SOUND_DIR + "Explosion\\4.ogg"),
+    pygame.mixer.Sound(SOUND_DIR + "Explosion\\5.ogg"),
+    pygame.mixer.Sound(SOUND_DIR + "Explosion\\6.ogg")
+]
+PLAYER_EXPLOSION_SOUND = pygame.mixer.Sound(SOUND_DIR + "Player\\explode.ogg")
+
+# Music List
+MUSIC_PLAYLIST = [
+    "1.ogg",
+    "2.ogg",
+    "3.ogg",
+    "4.ogg",
+    "5.ogg",
+    "6.ogg",
+    "7.ogg",
+    "8.ogg"
+    ]
+
+# Variables
+current_track = 1
+point_count = 0
+level = 0
+spawn_counter = 0
+game_over = False
+firemode = "normal"
+held_keys = []
+player_projectiles = []
+enemy_projectiles = []
+enemies = []
+explosions = []
+
+# -----------------------------------------------------------------------------------------------------------------------------
+
+# Insults Init
+if Insults_enabled:
+    with open (TTS_DIR + "insults_pronouns.txt", "r") as file:
+        insults_pronouns = file.read().split("\n")
+    with open (TTS_DIR + "insults_adjectives.txt", "r") as file:
+        insults_adjectives = file.read().split("\n")
+    with open (TTS_DIR + "insults_nouns.txt", "r") as file:
+        insults_nouns = file.read().split("\n")
+    # TTS Init
+    tts_engine = pyttsx3.init()
+    voices = tts_engine.getProperty('voices')
+    tts_engine.setProperty('voice', voices[1].id)
+    tts_engine.setProperty('rate', 235)
+    Speaker = threading.Thread(target=InsultLoop)
+    Speaker.start()
+
+# Background Fade init
+background = [1, 1, 1]
+R_fade = True
+R_fade_up = True
+G_fade = False
+G_fade_up = False
+B_fade = False
+B_fade_up = False
+fade_tick = True
+
+# Game Init
+clock = pygame.time.Clock()
+running = True
+last_shot = time()
+shoot_delay = NORMAL_FIRERATE
+time_start = time()
+
+# Stars Init
+stars1 = LoadImg("Stars.png", (STARS_WIDTH * STARS_SCALE, STARS_HEIGHT * STARS_SCALE))
+stars1_curpos_x, stars1_curpos_y = 0, 0
+stars2 = LoadImg("Stars.png", (STARS_WIDTH * STARS_SCALE, STARS_HEIGHT * STARS_SCALE))
+stars2_curpos_x, stars2_curpos_y = (STARS_WIDTH * STARS_SCALE), 0
+
+# Ship Init
+ship = LoadImg("Ship_sideways.png", SHIP_SCALE)
+ship_size_x, ship_size_y = ship.get_size()
+ship_rect = ship.get_rect()
+ship_rect.x, ship_rect.y = (ship_size_x * 2), height//2
+ship_hitbox = ship_rect.inflate(- ship_size_x * 0.2, - ship_size_y * 0.2)
+ship_velocity_x = 0
+ship_velocity_y = 0
+
+# Flame Init
+flame = LoadImg("ThrusterFlame.png", FLAME_SCALE)
+flame_size_x, flame_size_y = FLAME_SCALE
+flame_rect = flame.get_rect()
+flame_light = LoadImg("ThrusterFlame_light.png", FLAME_SCALE)
+flame_light_size_x, flame_light_size_y = FLAME_SCALE
+flame_light_rect = flame_light.get_rect()
+
+# -----------------------------------------------------------------------------------------------------------------------------
+
+# Start Game
+PlayMusic("intro.ogg")
+print(TEXT_GREEN + "\n- GAME START -")
+high_score = LoadGame()
+# print(TEXT_YELLOW + "Highscore: " + TEXT_CYAN + str(high_score))
+ClearFont()
+start_screen = LoadImg("StartScreen.png", (width, height))
+screen.fill([255, 255, 255])
+screen.blit(start_screen, (0, 0))
+pygame.display.flip()
+clock.tick(60)
+sleep(2)
+time_start = time()
+PlayMusic()
+
+# -----------------------------------------------------------------------------------------------------------------------------
+
+# Main Game Loop
+while running:
+
+    # Draw Background
+    fade_background()                               # blit included
+    move_stars()                                    # blit included
+
+    # -----------------------------------------------------------------------------------------------------------------------------
+
+    # Keyboard Input
+    for event in pygame.event.get():
+        # if event.type == pygame.QUIT:
+        #     pygame.quit()
+        #     raise SystemExit
+        if event.type == KEYDOWN:
+            # Movement Keys
+            if event.key == K_a:
+                held_keys.append("Left")
+            if event.key == K_d:
+                held_keys.append("Right")
+            if event.key == K_w:
+                held_keys.append("Up")
+            if event.key == K_s:
+                held_keys.append("Down")
+            # Action Keys
+            if event.key == K_SPACE:
+                held_keys.append("Space")
+            # Music Controls (Remove for performance)
+            if event.key == K_KP_PLUS:
+                if current_track == len(MUSIC_PLAYLIST):
+                    current_track = 1
+                else:
+                    current_track += 1
+                PlayMusic()
+            # Exit Game
+            if event.key == K_ESCAPE:
+                GameExit()
+        elif event.type == KEYUP:
+            # Movement
+            if event.key == K_a:
+                held_keys.remove("Left")
+            if event.key == K_d:
+                held_keys.remove("Right")
+            if event.key == K_w:
+                held_keys.remove("Up")
+            if event.key == K_s:
+                held_keys.remove("Down")
+            # Action Keys
+            if event.key == K_SPACE:
+                held_keys.remove("Space")
+
+    # -----------------------------------------------------------------------------------------------------------------------------
+
+    # Actions
+    if not game_over:
+
+        # Movement
+        ship_velocity_x, ship_velocity_y = 0, 0
+        flame.set_alpha(0)
+        flame_light.set_alpha(0)
+        if "Up" in held_keys:
+            ship_velocity_y -= MOVE_SPEED
+            flame_light.set_alpha(randint(140, 160))
+        if "Down" in held_keys:
+            ship_velocity_y += MOVE_SPEED
+            flame_light.set_alpha(randint(140, 160))
+        if "Left" in held_keys:
+            ship_velocity_x -= MOVE_SPEED
+            flame_light.set_alpha(randint(60, 80))
+        if "Right" in held_keys:
+            ship_velocity_x += MOVE_SPEED
+            flame.set_alpha(randint(170, 210))
+            flame_light.set_alpha(0)
+        elif "Up" not in held_keys and "Down" not in held_keys and "Left" not in held_keys:
+            flame_light.set_alpha(randint(100, 120))
+        ship_rect.x += ship_velocity_x
+        ship_rect.y += ship_velocity_y
+        if ship_rect.x <= 0:
+            ship_rect.x = 0
+        if ship_rect.y <=0:
+            ship_rect.y = 0
+        if ship_rect.x >= width - ship_size_x:
+            ship_rect.x = width - ship_size_x
+        if ship_rect.y >= height - ship_size_y:
+            ship_rect.y = height - ship_size_y
+        ship_hitbox.center = ship_rect.center
+
+        if "Space" in held_keys:
+            if time() - last_shot > shoot_delay:
+                PlayerShoot(firemode)
+                last_shot = time()
+
+        # -----------------------------------------------------------------------------------------------------------------------------
+
+        # Update Ship Thruster Flame
+        flame_rect.midright = ship_rect.midleft
+        flame_light_rect.midright = ship_rect.midleft
+
+        # Update Ship
+        screen.blit(ship, (ship_rect.x, ship_rect.y))
+        screen.blit(flame, flame_rect)
+        screen.blit(flame_light, flame_light_rect)
+
+    # -----------------------------------------------------------------------------------------------------------------------------
+
+    # Update Player Projectiles
+    for projectile in player_projectiles[:]:
+        projectile.update()
+        projectile.draw()
+        projectile.check()
+        if projectile.rect.x > width:
+            if projectile in player_projectiles:
+                player_projectiles.remove(projectile)
+    
+    # Update Enemies
+    for enemy in enemies[:]:
+        enemy.update()
+        enemy.draw()
+        if enemy.rect.x < (0 - enemy.size_x):
+            enemies.remove(enemy)
+        if enemy.hitbox.colliderect(ship_hitbox):
+            PlayerDead()
+    
+    # Update Enemy Projectiles
+    for projectile in enemy_projectiles:
+        if projectile.rect.colliderect(ship_hitbox):
+            PlayerDead()
+            enemy_projectiles.remove(projectile)
+
+    # Update Explosionsw
+    for explosion in explosions[:]:
+        explosion.update()
+        explosion.draw()
+
+    # -----------------------------------------------------------------------------------------------------------------------------
+
+    # Spawn Enemies
+    spawn_counter += 1
+    if level == 0:
+        if spawn_counter == 150:
+            level = 1
+            spawn_counter = 0
+    elif level == 1:
+        if spawn_counter == 30:
+            SpawnArrow()
+            spawn_counter = 0
+
+    # -----------------------------------------------------------------------------------------------------------------------------
+    
+    pygame.display.flip()
+    clock.tick(60)
+
+    # -----------------------------------------------------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------------------------------------------------------
