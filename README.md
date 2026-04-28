@@ -8,3 +8,4 @@ WASD to move
 SPACE to shoot
 
 # Installation
+You can just execute "Grapyus.bat", which will launch the script using the included python environment.
