@@ -45,7 +45,7 @@ NORMAL_FIRERATE = 0.4                               # delay between shots in nor
 # Pygame Init
 pygame.init()
 screen = pygame.display.set_mode((width, height), display=0, vsync=0)
-font = pygame.font.Font("KodeMono.ttf", 24)
+font = pygame.font.Font("KodeMono.ttf", 20)
 
 # Initial terminal clear
 clear = lambda: os.system('cls')
@@ -812,7 +812,7 @@ while running:
             PlayerDead()
             enemy_projectiles.remove(projectile)
 
-    # Update Explosionsw
+    # Update Explosions
     for explosion in explosions[:]:
         explosion.update()
         explosion.draw()
@@ -824,7 +824,7 @@ while running:
         SpawnEnemies()
 
     # -----------------------------------------------------------------------------------------------------------------------------
-    
+
     DisplayHUD()
     pygame.display.flip()
     clock.tick(60)
