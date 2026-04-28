@@ -1,4 +1,5 @@
-![Uploading GithubBanner.png…]()
+<img width="512" height="128" alt="GithubBanner" src="https://github.com/user-attachments/assets/08648544-c376-4255-89b2-c125ebd27842" />
+
 # A Gradius clone made in Python using Pygame
 
 I did this project at school while getting my vocational training in IT, to learn object oriented programming and hone my python skills, but mostly it was just a way to pass the time during boring classes.
