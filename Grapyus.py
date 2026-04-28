@@ -1,13 +1,10 @@
-import contextlib
+import os, sys, contextlib
+from time import sleep, time
+from random import randint, choice
 with contextlib.redirect_stdout(None):
     import pygame
 from pygame.locals import *
 from colorama import Fore, Style
-from time import sleep, time
-from random import randint, choice
-import os
-import sys
-import threading
 
 # -----------------------------------------------------------------------------------------------------------------------------
 
@@ -48,6 +45,7 @@ NORMAL_FIRERATE = 0.4                               # delay between shots in nor
 # Pygame Init
 pygame.init()
 screen = pygame.display.set_mode((width, height), display=0, vsync=0)
+font = pygame.font.Font("KodeMono.ttf", 24)
 
 # Initial terminal clear
 clear = lambda: os.system('cls')
@@ -71,7 +69,6 @@ class PlayerProjectile:
                 explosions.append(Explosion(enemy.rect.center, enemy.explosion_frames))
                 global point_count
                 point_count += enemy.points
-                AnnouncePoints()
                 DifficultyCheck()
                 if self in player_projectiles:
                     player_projectiles.remove(self)
@@ -115,8 +112,8 @@ class Arrow:
     def __init__(self, x, y, size, speed):
         self.explosion_frames = ARROW_EXPLOSION_FRAMES
         self.points = ARROW_POINTS
-        self.sprite = LoadImg("Arrow.png", size)
-        self.flame = LoadImg("ArrowFlame.png", size)
+        self.sprite = ARROW_SPRITE
+        self.flame = ARROW_FLAME
         self.rect = self.sprite.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -140,8 +137,8 @@ class Yellow:
     def __init__(self, x, y, size, speed):
         self.explosion_frames = YELLOW_EXPLOSION_FRAMES
         self.points = YELLOW_POINTS
-        self.sprite = LoadImg("YellowFighter.png", size)
-        self.flame = LoadImg("ArrowFlame.png", size)
+        self.sprite = YELLOW_SPRITE
+        self.flame = YELLOW_FLAME
         self.rect = self.sprite.get_rect()
         self.rect.x = x
         self.rect.y = y
@@ -169,7 +166,7 @@ class Yellow:
         self.shoot()
     def draw(self):
         screen.blit(self.sprite, self.rect)
-        screen.blit(self.flame, (self.rect.x + self.size_x, self.rect.y))
+        screen.blit(self.flame, (self.rect.x + self.size_x * 0.875, self.rect.y))
     def shoot(self):
         self.shot_count += 1
         if self.shot_count == 90:
@@ -440,18 +437,127 @@ def SpawnYellow():
         )
     )
 
-def AnnouncePoints():
-    clear()
-    print(TEXT_YELLOW + "Points:  " + TEXT_GREEN + str(point_count))
+def DisplayHUD():
+    points_white = font.render("Points: ", True, (255, 255, 255))
+    points_green = font.render(str(point_count), True, (0, 255, 0))
+    level_white = font.render("Level: ", True, (255, 255, 255))
+    level_green = font.render(str(level), True, (0, 255, 0))
+    screen.blit(points_white, (10, 10))
+    screen.blit(points_green, (points_white.get_width() + 10, 10))
+    screen.blit(level_white, (width - (level_white.get_width() + level_green.get_width() + 10), 10))
+    screen.blit(level_green, (width - (level_green.get_width() + 10), 10))
+
+def SpawnEnemies():
+        global level
+        global level_counter
+        global arrow_counter
+        global yellow_counter
+        if level == 10:
+            pass
+        elif level == 9.5:
+            pass
+        elif level == 9:
+            pass
+        elif level == 8.5:
+            pass
+        elif level == 8:
+            pass
+        elif level == 7.5:
+            pass
+        elif level == 7:
+            pass
+        elif level == 6.5:
+            pass
+        elif level == 6:
+            pass
+        elif level == 5.5:
+            pass
+        elif level == 5:
+            pass
+        elif level == 4.5:
+            pass
+        elif level == 4:
+            pass
+        elif level == 3.5:
+            pass
+        elif level == 3:
+            yellow_counter += 1
+            arrow_counter += 1
+            if yellow_counter == 240:
+                SpawnYellow()
+                yellow_counter = 0
+            if arrow_counter == 310:
+                SpawnArrow()
+                arrow_counter = 0
+        elif level == 2.5:
+            level_counter += 1
+            if level_counter == 110:
+                level = 3
+                level_counter = 0
+                PlayMusic(3)
+        elif level == 2:
+            yellow_counter += 1
+            arrow_counter += 1
+            if yellow_counter == 180:
+                SpawnYellow()
+                yellow_counter = 0
+            if arrow_counter == 250:
+                SpawnArrow()
+                arrow_counter = 0
+        elif level == 1.5:
+            level_counter += 1
+            if level_counter == 110:
+                level = 2
+                level_counter = 0
+                PlayMusic(2)
+        elif level == 1:
+            arrow_counter += 1
+            if arrow_counter == 30:
+                SpawnArrow()
+                arrow_counter = 0
+        elif level == 0:
+            level_counter += 1
+            if level_counter == 150:
+                level = 1
+                level_counter = 0
 
 def DifficultyCheck():
     global level
-    if level == 1:
+    global level_counter
+    if level == 10:
+        pass
+    elif level == 9:
+        pass
+    elif level == 8:
+        pass
+    elif level == 7:
+        pass    
+    elif level == 6:
+        pass
+    elif level == 5:
+        pass
+    elif level == 4:
+        pass
+    elif level == 3:
+        pass
+    elif level == 2:
+        if point_count >= 500:
+            level_counter = 0
+            level = 2.5
+            PlayMusic("fadeout", 3)
+    elif level == 1:
         if point_count >= 200:
+            level_counter = 0
             level = 1.5
             PlayMusic("fadeout", 3)
-
+    
 # -----------------------------------------------------------------------------------------------------------------------------
+
+# Enemy Sprites
+ARROW_SPRITE = LoadImg("Arrow.png", ARROW_SCALE)
+ARROW_FLAME = LoadImg("ArrowFlame.png", ARROW_SCALE)
+YELLOW_SPRITE = LoadImg("YellowFighter.png", YELLOW_SCALE)
+YELLOW_FLAME = LoadImg("YellowFlame.png", YELLOW_SCALE)
 
 # Explosion Frames
 ARROW_EXPLOSION_SCALE = width//13, width//13
@@ -509,8 +615,10 @@ MUSIC_PLAYLIST = [
 # Variables
 current_track = 1
 point_count = 0
-level = 0
+level = 2
 level_counter = 0
+arrow_counter = 0
+yellow_counter = 0
 game_over = False
 firemode = "normal"
 held_keys = []
@@ -712,27 +820,12 @@ while running:
     # -----------------------------------------------------------------------------------------------------------------------------
 
     # Spawn Enemies
-    level_counter += 1
-    if level == 0:
-        if level_counter == 150:
-            level = 1
-            level_counter = 0
-    elif level == 1:
-        if level_counter == 30:
-            SpawnArrow()
-            level_counter = 0
-    elif level == 1.5:
-        if level_counter == 110:
-            level = 2
-            level_counter = 0
-            PlayMusic(2)
-    elif level == 2:
-        if level_counter == 180:
-            SpawnYellow()
-            level_counter = 0
+    if not game_over:
+        SpawnEnemies()
 
     # -----------------------------------------------------------------------------------------------------------------------------
     
+    DisplayHUD()
     pygame.display.flip()
     clock.tick(60)
 
