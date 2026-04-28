@@ -13,8 +13,8 @@ import threading
 
 # General Settings
 width, height = 1280, 720
-music_volume = 0.75
-Insults_enabled = False
+music_volume = 0.7
+Insults_enabled = False                             # Not properly implemented
 
 # -----------------------------------------------------------------------------------------------------------------------------
 
@@ -31,13 +31,17 @@ TEXT_CYAN = Fore.CYAN
 SHIP_SCALE = width//17, height//17                  # Scale to fit aspect ratio of sprite
 FLAME_SCALE = width//17, (width//17)*0.8666         # Scale to fit aspect ratio of sprite
 ARROW_SCALE = width//11, (width//11)*0.5625         # Scale to fit aspect ratio of sprite
+YELLOW_SCALE = width//11, (width//11)*0.875         # Scale to fit aspect ratio of sprite
 STARS_WIDTH, STARS_HEIGHT = 1498, 1060
 STARS_SCALE = 1.5
 STARS_EXITFRAME = 0 - (STARS_WIDTH * STARS_SCALE)
 MOVE_SPEED = 4
 ARROW_SPEED = 7
 ARROW_POINTS = 10
-PLAYER_PROJECTILE_BASE_SPEED = 10
+YELLOW_SPEED = 1
+YELLOW_POINTS = 30
+PLAYER_SHOT_SPEED = 10
+YELLOW_SHOT_SPEED = 6
 SHIPEXP_FRAME_DELAY = 6
 NORMAL_FIRERATE = 0.4                               # delay between shots in normal fire mode (in seconds)
 
@@ -55,8 +59,8 @@ clear()
 
 # Classes
 class PlayerProjectile:
-    def __init__(self, x, y, color, size, speed):
-        self.rect = pygame.Rect(x, y, size, size)
+    def __init__(self, x, y, color, size_x, size_y, speed):
+        self.rect = pygame.Rect(x, y, size_x, size_y)
         self.color = color
         self.speed = speed
     def update(self):
@@ -77,12 +81,12 @@ class PlayerProjectile:
                 ExplosionSound()
 
 class EnemyProjectile:
-    def __init__(self, x, y, color, size, speed):
-        self.rect = pygame.Rect(x, y, size, size)
+    def __init__(self, x, y, color, size_x, size_y, speed):
+        self.rect = pygame.Rect(x, y, size_x, size_y)
         self.color = color
         self.speed = speed
     def update(self):
-        self.rect.x += self.speed
+        self.rect.x -= self.speed
     def draw(self):
         pygame.draw.rect(screen, self.color, self.rect)
 
@@ -133,6 +137,66 @@ class Arrow:
     def draw(self):
         screen.blit(self.sprite, self.rect)
         screen.blit(self.flame, (self.rect.x + self.size_x, self.rect.y))
+
+class Yellow:
+    def __init__(self, x, y, size, speed):
+        self.explosion_frames = YELLOW_EXPLOSION_FRAMES
+        self.points = YELLOW_POINTS
+        self.sprite = LoadImg("YellowFighter.png", size)
+        self.flame = LoadImg("ArrowFlame.png", size)
+        self.rect = self.sprite.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.size_x = size[0]
+        self.size_y = size[1]
+        self.hitbox = self.rect.inflate(
+            -self.rect.width * 0.1,
+            -self.rect.height * 0.1
+        )
+        self.speed = speed
+        self.shot_count = 0
+        self.move_delay = 0
+        if self.rect.y < height // 2:
+            self.move_y = 1
+        else:
+            self.move_y = -1
+    def update(self):
+        self.move_delay += 1
+        if self.move_delay == 2:
+            self.rect.y += self.move_y
+            self.move_delay = 0
+        self.rect.x -= self.speed
+        self.flame.set_alpha(randint(150, 190))
+        self.hitbox.center = self.rect.center
+        self.shoot()
+    def draw(self):
+        screen.blit(self.sprite, self.rect)
+        screen.blit(self.flame, (self.rect.x + self.size_x, self.rect.y))
+    def shoot(self):
+        self.shot_count += 1
+        if self.shot_count == 90:
+            enemy_projectiles.append(
+                EnemyProjectile(
+                    self.rect.x,                                # Projectile X in front of ship
+                    self.rect.centery - self.size_y // 3,       # Projectile Y at middle of ship height
+                    [255, 30, 30],                              # Projectile color
+                    height // 50,
+                    height // 105,
+                    YELLOW_SHOT_SPEED                           # Projectile
+                )
+            )
+            enemy_projectiles.append(
+                EnemyProjectile(
+                    self.rect.x,                                # Projectile X in front of ship
+                    self.rect.centery + self.size_y // 3,       # Projectile Y at middle of ship height
+                    [255, 30, 30],                              # Projectile color
+                    height // 50,
+                    height // 105,
+                    YELLOW_SHOT_SPEED                           # Projectile
+                )
+            )
+            pygame.mixer.Sound.play(choice(YELLOW_SHOOT_SOUNDS))
+            self.shot_count = 0
 
 # -----------------------------------------------------------------------------------------------------------------------------
 
@@ -348,8 +412,9 @@ def PlayerShoot(projectile_mode):
                 ship_rect.x + ship_size_x,          # Projectile X in front of ship
                 ship_rect.y + ship_size_y // 2,     # Projectile Y at middle of ship height
                 [25, 235, 255],                     # Projectile color light blue
-                height // 100,                      # Projectile size a hundredth of screen height
-                PLAYER_PROJECTILE_BASE_SPEED        # Projectile speed basic
+                height // 100,                      # Projectile width a hundredth of screen height
+                height // 100,
+                PLAYER_SHOT_SPEED
             )
         )
         pygame.mixer.Sound.play(SHOOT_SOUND_NORMAL)
@@ -370,6 +435,16 @@ def SpawnArrow():
         )
     )
 
+def SpawnYellow():
+    enemies.append(
+        Yellow(
+            width,
+            randint(0, height - YELLOW_SCALE[0]),
+            YELLOW_SCALE,
+            YELLOW_SPEED
+        )
+    )
+
 def AnnouncePoints():
     clear()
     print(TEXT_YELLOW + "Points:  " + TEXT_GREEN + str(point_count))
@@ -386,6 +461,7 @@ if Insults_enabled:
     import pyttsx3
     def InsultLoop():
         global tts_engine
+        global game_over
         while True:
             if game_over:
                 # If game is over, taunt player
@@ -418,6 +494,13 @@ SHIP_EXPLOSION_FRAMES = [
     LoadImg("Explosions\\Ship\\3.png", ARROW_EXPLOSION_SCALE),
     LoadImg("Explosions\\Ship\\4.png", ARROW_EXPLOSION_SCALE)
 ]
+YELLOW_EXPLOSION_SCALE = width//12, width//12
+YELLOW_EXPLOSION_FRAMES = [
+    LoadImg("Explosions\\YellowFighter\\1.png", YELLOW_EXPLOSION_SCALE),
+    LoadImg("Explosions\\YellowFighter\\2.png", YELLOW_EXPLOSION_SCALE),
+    LoadImg("Explosions\\YellowFighter\\3.png", YELLOW_EXPLOSION_SCALE),
+    LoadImg("Explosions\\YellowFighter\\4.png", YELLOW_EXPLOSION_SCALE)
+]
 
 # Sounds
 SHOOT_SOUND_NORMAL = pygame.mixer.Sound(SOUND_DIR + "Player\\shoot_normal.ogg")
@@ -430,6 +513,12 @@ EXPLOSION_SOUNDS = [
     pygame.mixer.Sound(SOUND_DIR + "Explosion\\6.ogg")
 ]
 PLAYER_EXPLOSION_SOUND = pygame.mixer.Sound(SOUND_DIR + "Player\\explode.ogg")
+YELLOW_SHOOT_SOUNDS = [
+    pygame.mixer.Sound(SOUND_DIR + "Yellow\\Shoot\\1.ogg"),
+    pygame.mixer.Sound(SOUND_DIR + "Yellow\\Shoot\\2.ogg"),
+    pygame.mixer.Sound(SOUND_DIR + "Yellow\\Shoot\\3.ogg"),
+    pygame.mixer.Sound(SOUND_DIR + "Yellow\\Shoot\\4.ogg")
+]
 
 # Music List
 MUSIC_PLAYLIST = [
@@ -644,13 +733,15 @@ while running:
     for enemy in enemies[:]:
         enemy.update()
         enemy.draw()
-        if enemy.rect.x < (0 - enemy.size_x):
+        if enemy.rect.x < (0 - enemy.size_x) or enemy.rect.y < (0 - enemy.size_y) or enemy.rect.y > height:
             enemies.remove(enemy)
         if enemy.hitbox.colliderect(ship_hitbox):
             PlayerDead()
     
     # Update Enemy Projectiles
-    for projectile in enemy_projectiles:
+    for projectile in enemy_projectiles[:]:
+        projectile.update()
+        projectile.draw()
         if projectile.rect.colliderect(ship_hitbox):
             PlayerDead()
             enemy_projectiles.remove(projectile)
@@ -673,16 +764,19 @@ while running:
             SpawnArrow()
             level_counter = 0
     elif level == 1.5:
-        if level_counter == 200:
+        if level_counter == 110:
             level = 2
             level_counter = 0
             PlayMusic(2)
-    
+    elif level == 2:
+        if level_counter == 180:
+            SpawnYellow()
+            level_counter = 0
+
     # -----------------------------------------------------------------------------------------------------------------------------
     
     pygame.display.flip()
     clock.tick(60)
-    print(level_counter)
 
     # -----------------------------------------------------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------------------------
