@@ -14,7 +14,6 @@ import threading
 # General Settings
 width, height = 1280, 720
 music_volume = 0.7
-Insults_enabled = False                             # Not properly implemented
 
 # -----------------------------------------------------------------------------------------------------------------------------
 
@@ -333,9 +332,6 @@ def ClearFont():
 
 def GameExit():
     PlayMusic("gameover.ogg")
-    if Insults_enabled:
-        global tts_engine
-        tts_engine.stop()
     end_screen = LoadImg("EndScreen.png", (width, height))
     screen.fill([255, 255, 255])
     screen.blit(end_screen, (0, 0))
@@ -456,27 +452,6 @@ def DifficultyCheck():
             level = 1.5
             PlayMusic("fadeout", 3)
 
-# Insult Function
-if Insults_enabled:
-    import pyttsx3
-    def InsultLoop():
-        global tts_engine
-        global game_over
-        while True:
-            if game_over:
-                # If game is over, taunt player
-                insult = tts_engine.say("Hahahahahaha you're so bad, " + str(choice(insults_pronouns)) + " " + choice(insults_adjectives) + " " + choice(insults_adjectives) + " " + str(choice(insults_nouns)) + ".")
-            else:
-                # While game is running, say insult
-                insult = str(choice(insults_pronouns) + " " + choice(insults_adjectives) + " " + choice(insults_nouns) + "!")
-            tts_engine.say(insult)
-            tts_engine.startLoop()
-            tts_engine.endLoop()
-            if game_over:
-                break
-            else:
-                sleep(3)
-
 # -----------------------------------------------------------------------------------------------------------------------------
 
 # Explosion Frames
@@ -546,22 +521,6 @@ enemies = []
 explosions = []
 
 # -----------------------------------------------------------------------------------------------------------------------------
-
-# Insults Init
-if Insults_enabled:
-    with open (TTS_DIR + "insults_pronouns.txt", "r") as file:
-        insults_pronouns = file.read().split("\n")
-    with open (TTS_DIR + "insults_adjectives.txt", "r") as file:
-        insults_adjectives = file.read().split("\n")
-    with open (TTS_DIR + "insults_nouns.txt", "r") as file:
-        insults_nouns = file.read().split("\n")
-    # TTS Init
-    tts_engine = pyttsx3.init()
-    voices = tts_engine.getProperty('voices')
-    tts_engine.setProperty('voice', voices[1].id)
-    tts_engine.setProperty('rate', 235)
-    Speaker = threading.Thread(target=InsultLoop)
-    Speaker.start()
 
 # Background Fade init
 background = [1, 1, 1]
