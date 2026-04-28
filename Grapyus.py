@@ -45,7 +45,8 @@ NORMAL_FIRERATE = 0.4                               # delay between shots in nor
 # Pygame Init
 pygame.init()
 screen = pygame.display.set_mode((width, height), display=0, vsync=0)
-font = pygame.font.Font("KodeMono.ttf", 20)
+pygame.display.set_caption("Grapyus")
+font = pygame.font.Font(SPRITE_DIR + "KodeMono.ttf", 20)
 
 # Initial terminal clear
 clear = lambda: os.system('cls')
@@ -203,13 +204,13 @@ def LoadImg(image, size):
     return img
 
 def LoadGame():
-    with open ((SAVE_DIR + "save.lol"), "r") as savefile:
-        loaded_game = savefile.read()
-        savefile.close()
-        try:
+    if os.path.exists(SAVE_DIR + "save.lol"):
+        with open((SAVE_DIR + "save.lol"), "r") as savefile:
+            loaded_game = savefile.read()
+            savefile.close()
             return int(loaded_game)
-        except ValueError:
-            return 0
+    else:
+        return 0
 
 def SaveGame():
     with open ((SAVE_DIR + "save.lol"), "w+") as savefile:
@@ -335,6 +336,7 @@ def GameExit():
     pygame.display.flip()
     time_end = time()
     clear()
+    SaveGame()
     print(TEXT_YELLOW + "- GAME END -\n")
     print(TEXT_YELLOW + "Points collected:  " + TEXT_GREEN + str(point_count))
     print(TEXT_YELLOW + "Time survived:  " + TEXT_GREEN + str(int(time_end - time_start)) + " Seconds")
@@ -447,7 +449,7 @@ def DisplayHUD():
     screen.blit(level_white, (width - (level_white.get_width() + level_green.get_width() + 10), 10))
     screen.blit(level_green, (width - (level_green.get_width() + 10), 10))
 
-def SpawnEnemies():
+def LevelManager():
         global level
         global level_counter
         global arrow_counter
@@ -491,7 +493,7 @@ def SpawnEnemies():
                 arrow_counter = 0
         elif level == 2.5:
             level_counter += 1
-            if level_counter == 110:
+            if level_counter == 150:
                 level = 3
                 level_counter = 0
                 PlayMusic(3)
@@ -506,7 +508,7 @@ def SpawnEnemies():
                 arrow_counter = 0
         elif level == 1.5:
             level_counter += 1
-            if level_counter == 110:
+            if level_counter == 150:
                 level = 2
                 level_counter = 0
                 PlayMusic(2)
@@ -544,12 +546,12 @@ def DifficultyCheck():
         if point_count >= 500:
             level_counter = 0
             level = 2.5
-            PlayMusic("fadeout", 3)
+            PlayMusic("fadeout", 2.5)
     elif level == 1:
         if point_count >= 200:
             level_counter = 0
             level = 1.5
-            PlayMusic("fadeout", 3)
+            PlayMusic("fadeout", 2.5)
     
 # -----------------------------------------------------------------------------------------------------------------------------
 
@@ -569,10 +571,10 @@ ARROW_EXPLOSION_FRAMES = [
 ]
 SHIP_EXPLOSION_SCALE = width//10, width//10
 SHIP_EXPLOSION_FRAMES = [
-    LoadImg("Explosions\\Ship\\1.png", ARROW_EXPLOSION_SCALE),
-    LoadImg("Explosions\\Ship\\2.png", ARROW_EXPLOSION_SCALE),
-    LoadImg("Explosions\\Ship\\3.png", ARROW_EXPLOSION_SCALE),
-    LoadImg("Explosions\\Ship\\4.png", ARROW_EXPLOSION_SCALE)
+    LoadImg("Explosions\\Ship\\1.png", SHIP_EXPLOSION_SCALE),
+    LoadImg("Explosions\\Ship\\2.png", SHIP_EXPLOSION_SCALE),
+    LoadImg("Explosions\\Ship\\3.png", SHIP_EXPLOSION_SCALE),
+    LoadImg("Explosions\\Ship\\4.png", SHIP_EXPLOSION_SCALE)
 ]
 YELLOW_EXPLOSION_SCALE = width//12, width//12
 YELLOW_EXPLOSION_FRAMES = [
@@ -615,7 +617,7 @@ MUSIC_PLAYLIST = [
 # Variables
 current_track = 1
 point_count = 0
-level = 2
+level = 0                  # Game starts at this level
 level_counter = 0
 arrow_counter = 0
 yellow_counter = 0
@@ -672,6 +674,7 @@ flame_light_rect = flame_light.get_rect()
 # -----------------------------------------------------------------------------------------------------------------------------
 
 # Start Game
+pygame.display.set_icon(LoadImg("Grapyus.ico", (16, 16)))
 PlayMusic("intro.ogg")
 print(TEXT_GREEN + "\n- GAME START -")
 high_score = LoadGame()
@@ -821,7 +824,7 @@ while running:
 
     # Spawn Enemies
     if not game_over:
-        SpawnEnemies()
+        LevelManager()
 
     # -----------------------------------------------------------------------------------------------------------------------------
 

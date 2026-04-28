@@ -1,1 +1,1 @@
-.\python\Scripts\python.exe .\Grapyus.py
+.\python\python.exe .\Grapyus.py
