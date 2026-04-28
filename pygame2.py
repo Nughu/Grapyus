@@ -329,16 +329,17 @@ def PlayerDead():
     explosions.append(Explosion(ship_rect.center, SHIP_EXPLOSION_FRAMES, SHIPEXP_FRAME_DELAY, is_player=True))
     ExplosionSound("player")
 
-def PlayMusic(filename=-1):
-    if filename == -1:
+def PlayMusic(track):
+    pygame.mixer.music.fadeout(2)
+    if type(track) == int:
         # if pygame.mixer.music.get_busy():
         #     pygame.mixer.fadeout(500)
         #     sleep(0.5)
-        pygame.mixer.music.load((SOUND_DIR + "Music\\" + MUSIC_PLAYLIST[current_track - 1]))
-    else:
+        pygame.mixer.music.load((SOUND_DIR + "Music\\" + MUSIC_PLAYLIST[track-1]))
+    elif type(track) == str:
         # if pygame.mixer.music.get_busy():
         #     pygame.mixer.music.stop()
-        pygame.mixer.music.load((SOUND_DIR + "Music\\" + filename))
+        pygame.mixer.music.load((SOUND_DIR + "Music\\" + track))
     # Start Music Track
     pygame.mixer.music.set_volume(music_volume)
     pygame.mixer.music.play(0, 0.0)
@@ -381,7 +382,7 @@ def DifficultyCheck():
         print("TEMP")
     elif point_count >= 200:
         global level
-        level += 1
+        level = 1.5
 
 # Insult Function
 if Insults_enabled:
@@ -531,7 +532,7 @@ pygame.display.flip()
 clock.tick(60)
 sleep(2)
 time_start = time()
-PlayMusic()
+PlayMusic(1)
 
 # -----------------------------------------------------------------------------------------------------------------------------
 
@@ -681,7 +682,12 @@ while running:
         if spawn_counter == 30:
             SpawnArrow()
             spawn_counter = 0
-
+    elif level == 1.5:
+        if spawn_counter == 120:
+            level = 2
+            spawn_counter = 0
+            PlayMusic(2)
+    
     # -----------------------------------------------------------------------------------------------------------------------------
     
     pygame.display.flip()
