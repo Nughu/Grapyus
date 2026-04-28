@@ -329,20 +329,17 @@ def PlayerDead():
     explosions.append(Explosion(ship_rect.center, SHIP_EXPLOSION_FRAMES, SHIPEXP_FRAME_DELAY, is_player=True))
     ExplosionSound("player")
 
-def PlayMusic(track):
-    pygame.mixer.music.fadeout(2)
-    if type(track) == int:
-        # if pygame.mixer.music.get_busy():
-        #     pygame.mixer.fadeout(500)
-        #     sleep(0.5)
+def PlayMusic(track, duration=-1):
+    if track == "fadeout":
+        pygame.mixer.music.fadeout(int(duration*1000))
+    elif type(track) == int:
         pygame.mixer.music.load((SOUND_DIR + "Music\\" + MUSIC_PLAYLIST[track-1]))
+        pygame.mixer.music.set_volume(music_volume)
+        pygame.mixer.music.play(-1, 0.0)
     elif type(track) == str:
-        # if pygame.mixer.music.get_busy():
-        #     pygame.mixer.music.stop()
         pygame.mixer.music.load((SOUND_DIR + "Music\\" + track))
-    # Start Music Track
-    pygame.mixer.music.set_volume(music_volume)
-    pygame.mixer.music.play(0, 0.0)
+        pygame.mixer.music.set_volume(music_volume)
+        pygame.mixer.music.play(-1, 0.0)
 
 def PlayerShoot(projectile_mode):
     if projectile_mode == "normal":
@@ -378,11 +375,11 @@ def AnnouncePoints():
     print(TEXT_YELLOW + "Points:  " + TEXT_GREEN + str(point_count))
 
 def DifficultyCheck():
-    if point_count >= 10000:
-        print("TEMP")
-    elif point_count >= 200:
-        global level
-        level = 1.5
+    global level
+    if level == 1:
+        if point_count >= 200:
+            level = 1.5
+            PlayMusic("fadeout", 3)
 
 # Insult Function
 if Insults_enabled:
@@ -450,7 +447,7 @@ MUSIC_PLAYLIST = [
 current_track = 1
 point_count = 0
 level = 0
-spawn_counter = 0
+level_counter = 0
 game_over = False
 firemode = "normal"
 held_keys = []
@@ -563,13 +560,6 @@ while running:
             # Action Keys
             if event.key == K_SPACE:
                 held_keys.append("Space")
-            # Music Controls (Remove for performance)
-            if event.key == K_KP_PLUS:
-                if current_track == len(MUSIC_PLAYLIST):
-                    current_track = 1
-                else:
-                    current_track += 1
-                PlayMusic()
             # Exit Game
             if event.key == K_ESCAPE:
                 GameExit()
@@ -673,25 +663,26 @@ while running:
     # -----------------------------------------------------------------------------------------------------------------------------
 
     # Spawn Enemies
-    spawn_counter += 1
+    level_counter += 1
     if level == 0:
-        if spawn_counter == 150:
+        if level_counter == 150:
             level = 1
-            spawn_counter = 0
+            level_counter = 0
     elif level == 1:
-        if spawn_counter == 30:
+        if level_counter == 30:
             SpawnArrow()
-            spawn_counter = 0
+            level_counter = 0
     elif level == 1.5:
-        if spawn_counter == 120:
+        if level_counter == 200:
             level = 2
-            spawn_counter = 0
+            level_counter = 0
             PlayMusic(2)
     
     # -----------------------------------------------------------------------------------------------------------------------------
     
     pygame.display.flip()
     clock.tick(60)
+    print(level_counter)
 
     # -----------------------------------------------------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------------------------
