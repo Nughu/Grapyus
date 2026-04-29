@@ -559,11 +559,11 @@ def LevelManager():
         elif level == 4.5:
             pass
         elif level == 4:
-            pass
+            GameExit()
         elif level == 3.5:
             level_counter += 1
             if level_counter == 150:
-                level = 3
+                level = 4
                 level_counter = 0
                 PlayMusic(4)
         elif level == 3:
@@ -744,7 +744,6 @@ fade_tick = True
 
 # Game Init
 clock = pygame.time.Clock()
-running = True
 last_shot = time()
 shoot_delay = NORMAL_FIRERATE
 time_start = time()
@@ -778,8 +777,8 @@ flame_light_rect = flame_light.get_rect()
 pygame.display.set_icon(LoadImg("Grapyus.ico", (16, 16)))
 PlayMusic("intro.ogg")
 print(TEXT_GREEN + "\n- GAME START -")
+running = True
 high_score = LoadGame()
-# print(TEXT_YELLOW + "Highscore: " + TEXT_CYAN + str(high_score))
 ClearFont()
 start_screen = LoadImg("StartScreen.png", (width, height))
 screen.fill([255, 255, 255])
