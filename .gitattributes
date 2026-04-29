@@ -1,0 +1,11 @@
+# Count Python normally
+*.py linguist-detectable=true
+
+# Exclude everything else
+./python/** linguist-vendored
+./Save/** linguist-vendored
+./Sounds/** linguist-vendored
+./Sprites/** linguist-vendored
+./Grapyus.bat linguist-vendored
+README.md linguist-documentation
+requirements.txt linguist-documentation
