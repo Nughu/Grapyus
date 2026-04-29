@@ -1,4 +1,5 @@
-<img width="1080" height="383" alt="GithubBanner" src="https://github.com/user-attachments/assets/02ddcb25-124d-47bf-ab01-a4ed0a30348a" />
+<img width="1080" height="383" alt="GithubBanner" src="https://github.com/user-attachments/assets/de923811-b492-4b8b-afea-96aa40bbb2af" />
+
 
 # A Gradius clone made in Python using Pygame
 
