@@ -27,6 +27,7 @@ SHIP_SCALE = width//17, height//17                  # Scale to fit aspect ratio 
 FLAME_SCALE = width//17, (width//17)*0.8666         # Scale to fit aspect ratio of sprite
 ARROW_SCALE = width//11, (width//11)*0.5625         # Scale to fit aspect ratio of sprite
 YELLOW_SCALE = width//11, (width//11)*0.875         # Scale to fit aspect ratio of sprite
+GREY_SCALE = width//17, height//17                   # Scale to fit aspect ratio of sprite
 STARS_WIDTH, STARS_HEIGHT = 1498, 1060
 STARS_SCALE = 1.5
 STARS_EXITFRAME = 0 - (STARS_WIDTH * STARS_SCALE)
@@ -35,8 +36,11 @@ ARROW_SPEED = 7
 ARROW_POINTS = 10
 YELLOW_SPEED = 1
 YELLOW_POINTS = 30
+GREY_SPEED = 3
+GREY_POINTS = 50
 PLAYER_SHOT_SPEED = 10
 YELLOW_SHOT_SPEED = 6
+GREY_SHOT_SPEED = 7
 SHIPEXP_FRAME_DELAY = 5
 NORMAL_FIRERATE = 0.4                               # delay between shots in normal fire mode (in seconds)
 
@@ -83,6 +87,21 @@ class EnemyProjectile:
         self.speed = speed
     def update(self):
         self.rect.x -= self.speed
+    def draw(self):
+        pygame.draw.rect(screen, self.color, self.rect)
+
+class TargetedEnemyProjectile:
+    def __init__(self, x, y, color, size_x, size_y,target_x, target_y, speed):
+        self.rect = pygame.Rect(x, y, size_x, size_y)
+        self.color = color
+        dx = target_x - x
+        dy = target_y - y
+        distance = max(1, (dx ** 2 + dy ** 2) ** 0.5)
+        self.velocity_x = dx / distance * speed
+        self.velocity_y = dy / distance * speed
+    def update(self):
+        self.rect.x += self.velocity_x
+        self.rect.y += self.velocity_y
     def draw(self):
         pygame.draw.rect(screen, self.color, self.rect)
 
@@ -193,6 +212,56 @@ class Yellow:
             )
             pygame.mixer.Sound.play(choice(YELLOW_SHOOT_SOUNDS))
             self.shot_count = 0
+
+class Grey:
+    def __init__(self, x, y, size, speed):
+        self.explosion_frames = GREY_EXPLOSION_FRAMES
+        self.points = GREY_POINTS
+        self.sprite = GREY_SPRITE
+        self.flame = GREY_FLAME
+        self.rect = self.sprite.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.size_x = size[0]
+        self.size_y = size[1]
+        self.hitbox = self.rect.inflate(
+            -self.rect.width * 0.1,
+            -self.rect.height * 0.1
+        )
+        self.speed = speed
+        self.shot_count = 0
+        self.move_delay = 0
+        if self.rect.y < height // 2:
+            self.move_y = 1
+        else:
+            self.move_y = -1
+    def update(self):
+        self.rect.x -= self.speed
+        self.flame.set_alpha(randint(150, 190))
+        self.hitbox.center = self.rect.center
+        if self.rect.x > ship_rect.x + ship_size_x:
+            self.shoot()
+    def draw(self):
+        screen.blit(self.sprite, self.rect)
+        screen.blit(self.flame, (self.rect.x + self.size_x, self.rect.y))
+    def shoot(self):
+        self.shot_count += 1
+        if self.shot_count == 120:
+            enemy_projectiles.append(
+                TargetedEnemyProjectile(
+                    self.rect.x,                         # Projectile X in front of ship
+                    self.rect.centery,
+                    (50, 50, 255),
+                    height // 60,
+                    height // 60,
+                    ship_rect.centerx,
+                    ship_rect.centery,
+                    GREY_SHOT_SPEED
+                )
+            )
+            pygame.mixer.Sound.play(choice(YELLOW_SHOOT_SOUNDS))
+            self.shot_count = 0
+
 
 # -----------------------------------------------------------------------------------------------------------------------------
 
@@ -439,6 +508,16 @@ def SpawnYellow():
         )
     )
 
+def SpawnGrey():
+    enemies.append(
+        Grey(
+            width,
+            randint(0, height - GREY_SCALE[0]),
+            GREY_SCALE,
+            GREY_SPEED
+        )
+    )
+
 def DisplayHUD():
     points_white = font.render("Points: ", True, (255, 255, 255))
     points_green = font.render(str(point_count), True, (0, 255, 0))
@@ -454,6 +533,7 @@ def LevelManager():
         global level_counter
         global arrow_counter
         global yellow_counter
+        global grey_counter
         if level == 10:
             pass
         elif level == 9.5:
@@ -481,14 +561,22 @@ def LevelManager():
         elif level == 4:
             pass
         elif level == 3.5:
-            pass
+            level_counter += 1
+            if level_counter == 150:
+                level = 3
+                level_counter = 0
+                PlayMusic(4)
         elif level == 3:
             yellow_counter += 1
             arrow_counter += 1
-            if yellow_counter == 170:
+            grey_counter += 1
+            if grey_counter == 180:
+                SpawnGrey()
+                grey_counter = 0
+            if yellow_counter == 150:
                 SpawnYellow()
                 yellow_counter = 0
-            if arrow_counter == 60:
+            if arrow_counter == 360:
                 SpawnArrow()
                 arrow_counter = 0
         elif level == 2.5:
@@ -496,6 +584,7 @@ def LevelManager():
             if level_counter == 150:
                 level = 3
                 level_counter = 0
+                yellow_counter = -50
                 PlayMusic(3)
         elif level == 2:
             yellow_counter += 1
@@ -541,7 +630,10 @@ def DifficultyCheck():
     elif level == 4:
         pass
     elif level == 3:
-        pass
+        if point_count >= 1000:
+            level_counter = 0
+            level = 3.5
+            PlayMusic("fadeout", 2.5)
     elif level == 2:
         if point_count >= 500:
             level_counter = 0
@@ -560,6 +652,8 @@ ARROW_SPRITE = LoadImg("Arrow.png", ARROW_SCALE)
 ARROW_FLAME = LoadImg("ArrowFlame.png", ARROW_SCALE)
 YELLOW_SPRITE = LoadImg("YellowFighter.png", YELLOW_SCALE)
 YELLOW_FLAME = LoadImg("YellowFlame.png", YELLOW_SCALE)
+GREY_SPRITE = LoadImg("GreyFighter.png", GREY_SCALE)
+GREY_FLAME = LoadImg("GreyFlame.png", GREY_SCALE)
 
 # Explosion Frames
 ARROW_EXPLOSION_SCALE = width//13, width//13
@@ -582,6 +676,13 @@ YELLOW_EXPLOSION_FRAMES = [
     LoadImg("Explosions\\YellowFighter\\2.png", YELLOW_EXPLOSION_SCALE),
     LoadImg("Explosions\\YellowFighter\\3.png", YELLOW_EXPLOSION_SCALE),
     LoadImg("Explosions\\YellowFighter\\4.png", YELLOW_EXPLOSION_SCALE)
+]
+GREY_EXPLOSION_SCALE = width//11, width//11
+GREY_EXPLOSION_FRAMES = [
+    LoadImg("Explosions\\Grey\\1.png", GREY_EXPLOSION_SCALE),
+    LoadImg("Explosions\\Grey\\2.png", GREY_EXPLOSION_SCALE),
+    LoadImg("Explosions\\Grey\\3.png", GREY_EXPLOSION_SCALE),
+    LoadImg("Explosions\\Grey\\4.png", GREY_EXPLOSION_SCALE)
 ]
 
 # Sounds
@@ -616,10 +717,11 @@ MUSIC_PLAYLIST = [
 
 # Variables
 point_count = 0
-level = 3                  # Game starts at this level
+level = 0                  # Game starts at this level
 level_counter = 0
 arrow_counter = 0
 yellow_counter = 0
+grey_counter = 0
 game_over = False
 firemode = "normal"
 held_keys = []
