@@ -2,7 +2,7 @@
 
   <img src="./Images/GithubBanner.png" alt="Github banner" width="1080" height="383" />
 
-  <h2 style="color:#f0f6fc;">A Gradius clone made in Python using Pygame</h2>
+  <h2 style="color:#f0f6fc;">A Gradius clone made in Python using pygame</h2>
 </div>
 <p>
 I did this project at school while getting my vocational training in IT, to learn object oriented programming and hone my python skills, but mostly it was just a way to pass the time during boring classes.
