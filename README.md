@@ -1,6 +1,6 @@
 <div align="center" style="background-color:#0d1117; padding:32px; border-radius:12px;">
 
-  <img src="./Sprites/GithubBanner.png" alt="Github banner" width="1080" height="383" />
+  <img src="./Images/GithubBanner.png" alt="Github banner" width="1080" height="383" />
 
   <h2 style="color:#f0f6fc;">A Gradius clone made in Python using Pygame</h2>
 </div>
