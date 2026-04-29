@@ -13,5 +13,5 @@ You can just execute <b>Grapyus.bat</b>, which will launch the script using the 
 <h3>Controls</h3>
 <b>WASD</b> to move </br>
 <b>SPACE</b> to shoot </br>
-<b>TAB</b> to pause the game</br>
+<b>TAB</b> to pause/unpause the game</br>
 </p>
