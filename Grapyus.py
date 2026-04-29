@@ -262,7 +262,6 @@ class Grey:
             pygame.mixer.Sound.play(choice(YELLOW_SHOOT_SOUNDS))
             self.shot_count = 0
 
-
 # -----------------------------------------------------------------------------------------------------------------------------
 
 # Functions
