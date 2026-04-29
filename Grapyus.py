@@ -237,6 +237,10 @@ class Grey:
             self.move_y = -1
     def update(self):
         self.rect.x -= self.speed
+        self.move_delay += 1
+        if self.move_delay == 20:
+            self.rect.y += self.move_y
+            self.move_delay = 0
         self.flame.set_alpha(randint(150, 190))
         self.hitbox.center = self.rect.center
         if self.rect.x > ship_rect.x + ship_size_x:
@@ -395,9 +399,12 @@ def move_stars():
 def ClearFont():
     print(Style.RESET_ALL + "")
 
-def GameExit():
+def GameExit(end_screen = -1):
     PlayMusic("gameover.ogg")
-    end_screen = LoadImg("EndScreen.png", (width, height))
+    if end_screen == -1:
+        end_screen = LoadImg("EndScreen.png", (width, height))
+    else:
+        end_screen = LoadImg(end_screen, (width, height))
     screen.fill([255, 255, 255])
     screen.blit(end_screen, (0, 0))
     clock.tick(60)
@@ -558,7 +565,7 @@ def LevelManager():
         elif level == 4.5:
             pass
         elif level == 4:
-            GameExit()
+            GameExit("WinScreen.png")
         elif level == 3.5:
             level_counter += 1
             if level_counter == 150:
