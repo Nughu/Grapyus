@@ -16,7 +16,7 @@ music_volume = 0.7
 
 # Constants
 CENTER = width//2, height//2
-SPRITE_DIR = ".\\Images\\"
+IMG_DIR = ".\\Images\\"
 SOUND_DIR = ".\\Sounds\\"
 SAVE_DIR = ".\\Save\\"
 TEXT_YELLOW = Fore.YELLOW
@@ -50,7 +50,7 @@ NORMAL_FIRERATE = 0.4                               # delay between shots in nor
 pygame.init()
 screen = pygame.display.set_mode((width, height), display=0, vsync=0)
 pygame.display.set_caption("Grapyus")
-font = pygame.font.Font(SPRITE_DIR + "KodeMono.ttf", 20)
+font = pygame.font.Font(IMG_DIR + "KodeMono.ttf", 20)
 
 # Initial terminal clear
 clear = lambda: os.system('cls')
@@ -267,7 +267,7 @@ class Grey:
 
 # Functions
 def LoadImg(image, size):
-    img_unscaled = pygame.image.load(SPRITE_DIR + image)
+    img_unscaled = pygame.image.load(IMG_DIR + image)
     img_unscaled.convert()
     img = pygame.transform.scale(img_unscaled, size) 
     return img
