@@ -37,7 +37,7 @@ YELLOW_SPEED = 1
 YELLOW_POINTS = 30
 PLAYER_SHOT_SPEED = 10
 YELLOW_SHOT_SPEED = 6
-SHIPEXP_FRAME_DELAY = 6
+SHIPEXP_FRAME_DELAY = 5
 NORMAL_FIRERATE = 0.4                               # delay between shots in normal fire mode (in seconds)
 
 # -----------------------------------------------------------------------------------------------------------------------------
@@ -485,10 +485,10 @@ def LevelManager():
         elif level == 3:
             yellow_counter += 1
             arrow_counter += 1
-            if yellow_counter == 240:
+            if yellow_counter == 170:
                 SpawnYellow()
                 yellow_counter = 0
-            if arrow_counter == 310:
+            if arrow_counter == 60:
                 SpawnArrow()
                 arrow_counter = 0
         elif level == 2.5:
@@ -615,9 +615,8 @@ MUSIC_PLAYLIST = [
     ]
 
 # Variables
-current_track = 1
 point_count = 0
-level = 0                  # Game starts at this level
+level = 3                  # Game starts at this level
 level_counter = 0
 arrow_counter = 0
 yellow_counter = 0
@@ -702,9 +701,6 @@ while running:
 
     # Keyboard Input
     for event in pygame.event.get():
-        # if event.type == pygame.QUIT:
-        #     pygame.quit()
-        #     raise SystemExit
         if event.type == KEYDOWN:
             # Movement Keys
             if event.key == K_a:
@@ -721,6 +717,21 @@ while running:
             # Exit Game
             if event.key == K_ESCAPE:
                 GameExit()
+            # Pause Game
+            if event.key == K_TAB:
+                paused = True
+                screen.fill("white")
+                screen.blit(font.render("- PAUSED -", True, (0, 0, 0)), (width//2 - font.size("- PAUSED -")[0]//2, height//2 - font.size("- PAUSED -")[1]//2))
+                pygame.display.flip()
+                PlayMusic("fadeout", 0.5)
+                while paused:
+                    for event in pygame.event.get():
+                        if event.type == KEYDOWN:
+                            if event.key == K_TAB:
+                                paused = False
+                                pygame.mixer.music.play(-1, 0.0, 250)
+                            if event.key == K_ESCAPE:
+                                GameExit()
         elif event.type == KEYUP:
             # Movement
             if event.key == K_a:
