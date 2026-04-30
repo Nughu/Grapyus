@@ -250,7 +250,7 @@ class Grey:
         screen.blit(self.flame, (self.rect.x + self.size_x, self.rect.y))
     def shoot(self):
         self.shot_count += 1
-        if self.shot_count == 120:
+        if self.shot_count == 100:
             enemy_projectiles.append(
                 TargetedEnemyProjectile(
                     self.rect.x,                         # Projectile X in front of ship
@@ -401,7 +401,7 @@ def move_stars():
 def ClearFont():
     print(Style.RESET_ALL + "")
 
-def GameExit(end_screen = -1):
+def GameExit(end_screen=-1):
     PlayMusic("gameover.ogg")
     if end_screen == -1:
         end_screen = LoadImg("EndScreen.png", (width, height))
@@ -526,6 +526,27 @@ def SpawnGrey():
         )
     )
 
+def EnemySpawner(enemy_type, spawn_rate):
+    # create a dictionary for the EnemySpawner function/object
+    if not hasattr(EnemySpawner, "cnt"):
+        EnemySpawner.cnt = {}
+    # if the enemy type is not in the dictionary, add it with a count of 0
+    if enemy_type not in EnemySpawner.cnt:
+        EnemySpawner.cnt[enemy_type] = 0
+    # increment the count for the enemy type
+    EnemySpawner.cnt[enemy_type] += 1
+    # if the count for the enemy type has reached the spawn rate, spawn the enemy and reset the count
+    if EnemySpawner.cnt[enemy_type] == spawn_rate:
+        if enemy_type == "arrow":
+            SpawnArrow()
+            EnemySpawner.cnt[enemy_type] = 0
+        elif enemy_type == "yellow":
+            SpawnYellow()
+            EnemySpawner.cnt[enemy_type] = 0
+        elif enemy_type == "grey":
+            SpawnGrey()
+            EnemySpawner.cnt[enemy_type] = 0
+
 def DisplayHUD():
     points_white = font.render("Points: ", True, (255, 255, 255))
     points_green = font.render(str(point_count), True, (0, 255, 0))
@@ -537,140 +558,95 @@ def DisplayHUD():
     screen.blit(level_green, (width - (level_green.get_width() + 10), 10))
 
 def LevelManager():
-        global level
-        global level_counter
-        global arrow_counter
-        global yellow_counter
-        global grey_counter
         if level == 10:
-            pass
-        elif level == 9.5:
             pass
         elif level == 9:
             pass
-        elif level == 8.5:
-            pass
         elif level == 8:
-            pass
-        elif level == 7.5:
             pass
         elif level == 7:
             pass
-        elif level == 6.5:
-            pass
         elif level == 6:
             pass
-        elif level == 5.5:
-            pass
         elif level == 5:
-            yellow_counter += 1
-            arrow_counter += 1
-            grey_counter += 1
-            if grey_counter == 180:
-                SpawnGrey()
-                grey_counter = 0
-            if yellow_counter == 150:
-                SpawnYellow()
-                yellow_counter = 0
-            if arrow_counter == 360:
-                SpawnArrow()
-                arrow_counter = 0
-        elif level == 4.5:
-            level_counter += 1
-            if level_counter == 150:
-                level = 4
-                level_counter = 0
-                PlayMusic(4)
+            pass
         elif level == 4:
-            yellow_counter += 1
-            arrow_counter += 1
-            grey_counter += 1
-            if grey_counter == 180:
-                SpawnGrey()
-                grey_counter = 0
-            if yellow_counter == 150:
-                SpawnYellow()
-                yellow_counter = 0
-            if arrow_counter == 360:
-                SpawnArrow()
-                arrow_counter = 0
-        elif level == 3.5:
-            level_counter += 1
-            if level_counter == 150:
-                level = 4
-                level_counter = 0
-                PlayMusic(4)
+            EnemySpawner("arrow", 360)
+            EnemySpawner("yellow", 150)
+            EnemySpawner("grey", 180)
         elif level == 3:
-            grey_counter += 1
-            if grey_counter == 120:
-                SpawnGrey()
-                grey_counter = 0
-        elif level == 2.5:
-            level_counter += 1
-            if level_counter == 150:
-                level = 3
-                level_counter = 0
-                yellow_counter = -50
-                PlayMusic(3)
+            EnemySpawner("arrow", 180)
+            EnemySpawner("grey", 90)
         elif level == 2:
-            yellow_counter += 1
-            arrow_counter += 1
-            if yellow_counter == 180:
-                SpawnYellow()
-                yellow_counter = 0
-            if arrow_counter == 250:
-                SpawnArrow()
-                arrow_counter = 0
-        elif level == 1.5:
-            level_counter += 1
-            if level_counter == 150:
-                level = 2
-                level_counter = 0
-                PlayMusic(2)
+            EnemySpawner("arrow", 180)
+            EnemySpawner("yellow", 250)
         elif level == 1:
-            arrow_counter += 1
-            if arrow_counter == 30:
-                SpawnArrow()
-                arrow_counter = 0
+            EnemySpawner("arrow", 30)
         elif level == 0:
             level_counter += 1
             if level_counter == 150:
                 level = 1
                 level_counter = 0
 
+def LevelTransition(next_level):
+    global frame_counter
+    frame_counter += 1
+    if frame_counter == 150:
+        level = next_level
+        frame_counter = 0
+        PlayMusic(next_level)
+
 def DifficultyCheck():
     global level
-    global level_counter
+    global frame_counter
     if level == 10:
         pass
+    elif level == 9.5:
+        LevelTransition(10)
     elif level == 9:
         pass
+    elif level == 8.5:
+        LevelTransition(9)
     elif level == 8:
         pass
+    elif level == 7.5:
+        LevelTransition(8)
     elif level == 7:
         pass    
+    elif level == 6.5:
+        LevelTransition(7)
     elif level == 6:
         pass
+    elif level == 5.5:
+        LevelTransition(6)
     elif level == 5:
         pass
+    elif level == 4.5:
+        LevelTransition(5)
     elif level == 4:
         if point_count >= 1350:
-            level_counter = 0
+            frame_counter = 0
             level = 4.5
             PlayMusic("fadeout", 2.5)
+    elif level == 3.5:
+        LevelTransition(4)
     elif level == 3:
         if point_count >= 800:
-            level_counter = 0
+            frame_counter = 0
             level = 3.5
             PlayMusic("fadeout", 2.5)
+    elif level == 2.5:
+        LevelTransition(3)
     elif level == 2:
         if point_count >= 500:
-            level_counter = 0
+            frame_counter = 0
             level = 2.5
             PlayMusic("fadeout", 2.5)
+    elif level == 1.5:
+        LevelTransition(2)
     elif level == 1:
         if point_count >= 200:
-            level_counter = 0
+            frame_counter = 0
             level = 1.5
             PlayMusic("fadeout", 2.5)
     
@@ -747,10 +723,7 @@ MUSIC_PLAYLIST = [
 # Variables
 point_count = 0
 level = 3                  # Game starts at this level
-level_counter = 0
-arrow_counter = 0
-yellow_counter = 0
-grey_counter = 0
+frame_counter = 0
 game_over = False
 firemode = "normal"
 held_keys = []
