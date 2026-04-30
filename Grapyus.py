@@ -563,18 +563,6 @@ def LevelManager():
         elif level == 5.5:
             pass
         elif level == 5:
-            pass
-        elif level == 4.5:
-            pass
-        elif level == 4:
-            GameExit("WinScreen.png")
-        elif level == 3.5:
-            level_counter += 1
-            if level_counter == 150:
-                level = 4
-                level_counter = 0
-                PlayMusic(4)
-        elif level == 3:
             yellow_counter += 1
             arrow_counter += 1
             grey_counter += 1
@@ -587,6 +575,36 @@ def LevelManager():
             if arrow_counter == 360:
                 SpawnArrow()
                 arrow_counter = 0
+        elif level == 4.5:
+            level_counter += 1
+            if level_counter == 150:
+                level = 4
+                level_counter = 0
+                PlayMusic(4)
+        elif level == 4:
+            yellow_counter += 1
+            arrow_counter += 1
+            grey_counter += 1
+            if grey_counter == 180:
+                SpawnGrey()
+                grey_counter = 0
+            if yellow_counter == 150:
+                SpawnYellow()
+                yellow_counter = 0
+            if arrow_counter == 360:
+                SpawnArrow()
+                arrow_counter = 0
+        elif level == 3.5:
+            level_counter += 1
+            if level_counter == 150:
+                level = 4
+                level_counter = 0
+                PlayMusic(4)
+        elif level == 3:
+            grey_counter += 1
+            if grey_counter == 120:
+                SpawnGrey()
+                grey_counter = 0
         elif level == 2.5:
             level_counter += 1
             if level_counter == 150:
@@ -636,9 +654,12 @@ def DifficultyCheck():
     elif level == 5:
         pass
     elif level == 4:
-        pass
+        if point_count >= 1350:
+            level_counter = 0
+            level = 4.5
+            PlayMusic("fadeout", 2.5)
     elif level == 3:
-        if point_count >= 1000:
+        if point_count >= 800:
             level_counter = 0
             level = 3.5
             PlayMusic("fadeout", 2.5)
