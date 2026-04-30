@@ -3,6 +3,7 @@ from time import sleep, time
 from random import randint, choice
 with contextlib.redirect_stdout(None):
     import pygame
+from pygame import font
 from pygame.locals import *
 from colorama import Fore, Style
 
@@ -50,7 +51,6 @@ NORMAL_FIRERATE = 0.4                                   # delay between shots in
 pygame.init()
 screen = pygame.display.set_mode((width, height), display=0, vsync=0)
 pygame.display.set_caption("Grapyus")
-font = pygame.font.Font(IMG_DIR + "KodeMono.ttf", 20)
 
 # Initial terminal clear
 clear = lambda: os.system('cls')
@@ -164,6 +164,26 @@ class StarsMover:
         # Draw Stars
         screen.blit(self.stars1, [self.stars1_curpos_x, self.stars1_curpos_y])
         screen.blit(self.stars2, [self.stars2_curpos_x, self.stars2_curpos_y])
+
+class HUD:
+    def __init__(self):
+        global point_count
+        global level
+        self.points_font = pygame.font.Font(IMG_DIR + "KodeMono.ttf", 20)
+        self.pause_font = pygame.font.Font(IMG_DIR + "KodeMono.ttf", 40)
+        self.levelstr = self.points_font.render("Level: ", True, (255, 255, 255))
+        self.pointstr = self.points_font.render("Points: ", True, (255, 255, 255))
+    def ShowPoints(self):
+        self.points = self.points_font.render(str(point_count), True, (0, 255, 0))
+        self.level = self.points_font.render(str(level), True, (0, 255, 0))
+        screen.blit(self.pointstr, (10, 10))
+        screen.blit(self.points, (self.pointstr.get_width() + 10, 10))
+        screen.blit(self.levelstr, (width - (self.levelstr.get_width() + self.level.get_width() + 10), 10))
+        screen.blit(self.level, (width - (self.level.get_width() + 10), 10))
+    def Pause(self):
+        screen.fill("white")
+        screen.blit(self.pause_font.render("- PAUSED -", True, (0, 0, 0)), (width//2 - self.pause_font.size("- PAUSED -")[0]//2, height//2 - self.pause_font.size("- PAUSED -")[1]//2))
+        pygame.display.flip()
 
 class PlayerProjectile:
     def __init__(self, x, y, color, size_x, size_y, speed):
@@ -466,11 +486,11 @@ def PlayerDead():
 def PlayMusic(track, duration=-1):
     if track == "fadeout":
         pygame.mixer.music.fadeout(int(duration*1000))
-    elif type(track) == int:
+    elif isinstance(track, int):
         pygame.mixer.music.load((SOUND_DIR + "Music\\" + MUSIC_PLAYLIST[track-1]))
         pygame.mixer.music.set_volume(music_volume)
         pygame.mixer.music.play(-1, 0.0)
-    elif type(track) == str:
+    elif isinstance(track, str):
         pygame.mixer.music.load((SOUND_DIR + "Music\\" + track))
         pygame.mixer.music.set_volume(music_volume)
         pygame.mixer.music.play(-1, 0.0)
@@ -540,18 +560,9 @@ def EnemySpawner(enemy_type, spawn_rate):
             SpawnGrey()
             EnemySpawner.cnt[enemy_type] = 0
 
-def DisplayHUD():
-    points_white = font.render("Points: ", True, (255, 255, 255))
-    points_green = font.render(str(point_count), True, (0, 255, 0))
-    level_white = font.render("Level: ", True, (255, 255, 255))
-    level_green = font.render(str(level), True, (0, 255, 0))
-    screen.blit(points_white, (10, 10))
-    screen.blit(points_green, (points_white.get_width() + 10, 10))
-    screen.blit(level_white, (width - (level_white.get_width() + level_green.get_width() + 10), 10))
-    screen.blit(level_green, (width - (level_green.get_width() + 10), 10))
-
 def LevelManager():
         global level
+        global frame_counter
         if level == 10:
             pass
         elif level == 9:
@@ -577,10 +588,10 @@ def LevelManager():
         elif level == 1:
             EnemySpawner("arrow", 30)
         elif level == 0:
-            level_counter += 1
-            if level_counter == 150:
+            frame_counter += 1
+            if frame_counter == 150:
                 level = 1
-                level_counter = 0
+                frame_counter = 0
 
 def LevelTransition(next_level):
     global frame_counter
@@ -592,29 +603,36 @@ def LevelTransition(next_level):
 
 def DifficultyCheck():
     global level
+    global frame_counter
     if level == 10:
         pass
     elif level == 9.5:
+        frame_counter = 0
         LevelTransition(10)
     elif level == 9:
         pass
     elif level == 8.5:
+        frame_counter = 0
         LevelTransition(9)
     elif level == 8:
         pass
     elif level == 7.5:
+        frame_counter = 0
         LevelTransition(8)
     elif level == 7:
         pass    
     elif level == 6.5:
+        frame_counter = 0
         LevelTransition(7)
     elif level == 6:
         pass
     elif level == 5.5:
+        frame_counter = 0
         LevelTransition(6)
     elif level == 5:
         pass
     elif level == 4.5:
+        frame_counter = 0
         LevelTransition(5)
     elif level == 4:
         if point_count >= 1350:
@@ -622,6 +640,7 @@ def DifficultyCheck():
             level = 4.5
             PlayMusic("fadeout", 2.5)
     elif level == 3.5:
+        frame_counter = 0
         LevelTransition(4)
     elif level == 3:
         if point_count >= 800:
@@ -629,6 +648,7 @@ def DifficultyCheck():
             level = 3.5
             PlayMusic("fadeout", 2.5)
     elif level == 2.5:
+        frame_counter = 0
         LevelTransition(3)
     elif level == 2:
         if point_count >= 500:
@@ -636,6 +656,7 @@ def DifficultyCheck():
             level = 2.5
             PlayMusic("fadeout", 2.5)
     elif level == 1.5:
+        frame_counter = 0
         LevelTransition(2)
     elif level == 1:
         if point_count >= 200:
@@ -720,7 +741,7 @@ MUSIC_PLAYLIST = [
 
 # Variables
 point_count = 0
-level = 3                  # Game starts at this level
+level = 0                  # Game starts at this level
 frame_counter = 0
 game_over = False
 firemode = "normal"
@@ -729,6 +750,7 @@ player_projectiles = []
 enemy_projectiles = []
 enemies = []
 explosions = []
+
 
 # -----------------------------------------------------------------------------------------------------------------------------
 
@@ -743,6 +765,7 @@ clock = pygame.time.Clock()
 last_shot = time()
 shoot_delay = NORMAL_FIRERATE
 time_start = time()
+hud = HUD()
 
 # Ship Init
 ship = LoadImg("Ship_sideways.png", SHIP_SCALE)
@@ -811,9 +834,7 @@ while running:
             # Pause Game
             if event.key == K_TAB:
                 paused = True
-                screen.fill("white")
-                screen.blit(font.render("- PAUSED -", True, (0, 0, 0)), (width//2 - font.size("- PAUSED -")[0]//2, height//2 - font.size("- PAUSED -")[1]//2))
-                pygame.display.flip()
+                hud.Pause()
                 PlayMusic("fadeout", 0.5)
                 while paused:
                     for event in pygame.event.get():
@@ -930,7 +951,7 @@ while running:
 
     # -----------------------------------------------------------------------------------------------------------------------------
 
-    DisplayHUD()
+    hud.ShowPoints()
     pygame.display.flip()
     clock.tick(60)
 
