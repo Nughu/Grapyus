@@ -571,20 +571,32 @@ def LevelManager():
             pass
         elif level == 7:
             pass
+        elif level == 6.5:
+            LevelTransition(7)
         elif level == 6:
             pass
+        elif level == 5.5:
+            LevelTransition(6)
         elif level == 5:
             pass
+        elif level == 4.5:
+            LevelTransition(5)
         elif level == 4:
             EnemySpawner("arrow", 360)
             EnemySpawner("yellow", 150)
             EnemySpawner("grey", 180)
+        elif level == 3.5:
+            LevelTransition(4)
         elif level == 3:
             EnemySpawner("arrow", 180)
             EnemySpawner("grey", 90)
+        elif level == 2.5:
+            LevelTransition(3)
         elif level == 2:
             EnemySpawner("arrow", 180)
             EnemySpawner("yellow", 250)
+        elif level == 1.5:
+            LevelTransition(2)
         elif level == 1:
             EnemySpawner("arrow", 30)
         elif level == 0:
@@ -595,6 +607,7 @@ def LevelManager():
 
 def LevelTransition(next_level):
     global frame_counter
+    global level
     frame_counter += 1
     if frame_counter == 150:
         level = next_level
@@ -607,57 +620,40 @@ def DifficultyCheck():
     if level == 10:
         pass
     elif level == 9.5:
-        frame_counter = 0
         LevelTransition(10)
     elif level == 9:
         pass
     elif level == 8.5:
-        frame_counter = 0
         LevelTransition(9)
     elif level == 8:
         pass
     elif level == 7.5:
-        frame_counter = 0
         LevelTransition(8)
     elif level == 7:
         pass    
     elif level == 6.5:
-        frame_counter = 0
         LevelTransition(7)
     elif level == 6:
         pass
     elif level == 5.5:
-        frame_counter = 0
         LevelTransition(6)
     elif level == 5:
         pass
-    elif level == 4.5:
-        frame_counter = 0
-        LevelTransition(5)
     elif level == 4:
         if point_count >= 1350:
             frame_counter = 0
             level = 4.5
             PlayMusic("fadeout", 2.5)
-    elif level == 3.5:
-        frame_counter = 0
-        LevelTransition(4)
     elif level == 3:
         if point_count >= 800:
             frame_counter = 0
             level = 3.5
             PlayMusic("fadeout", 2.5)
-    elif level == 2.5:
-        frame_counter = 0
-        LevelTransition(3)
     elif level == 2:
         if point_count >= 500:
             frame_counter = 0
             level = 2.5
             PlayMusic("fadeout", 2.5)
-    elif level == 1.5:
-        frame_counter = 0
-        LevelTransition(2)
     elif level == 1:
         if point_count >= 200:
             frame_counter = 0
@@ -741,7 +737,7 @@ MUSIC_PLAYLIST = [
 
 # Variables
 point_count = 0
-level = 0                  # Game starts at this level
+level = 2.5                  # Game starts at this level
 frame_counter = 0
 game_over = False
 firemode = "normal"
