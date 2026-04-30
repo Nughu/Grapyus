@@ -59,6 +59,83 @@ clear()
 # -----------------------------------------------------------------------------------------------------------------------------
 
 # Classes
+class BackgroundFader:
+    def __init__(self):
+        self.background = [1, 1, 1]
+        self.R_fade = True
+        self.R_fade_up = True
+        self.G_fade = False
+        self.G_fade_up = False
+        self.B_fade = False
+        self.B_fade_up = False
+        self.fade_tick = True
+    def fade(self):
+        # Background Color Fade
+        if self.R_fade:
+            if self.R_fade_up:
+                if self.fade_tick:
+                    self.background[0] += 1
+                    self.fade_tick = False
+                else:
+                    self.fade_tick = True
+            else:
+                if self.fade_tick:
+                    self.background[0] -= 1
+                    self.fade_tick = False
+                else:
+                    self.fade_tick = True
+            if self.background[0] == 0:
+                self.R_fade_up = True
+                self.R_fade = False
+                self.G_fade = True
+            if self.background[0] == 40:
+                self.R_fade_up = False
+                self.R_fade = False
+                self.G_fade = True
+        if self.G_fade:
+            if  self.G_fade_up:
+                if self.fade_tick:
+                    self.background[1] += 1
+                    self.fade_tick = False
+                else:
+                    self.fade_tick = True
+            else:
+                if self.fade_tick:
+                    self.background[1] -= 1
+                    self.fade_tick = False
+                else:
+                    self.fade_tick = True
+            if self.background[1] == 0:
+                self.G_fade_up = True
+                self.G_fade = False
+                self.B_fade = True
+            if self.background[1] == 40:
+                self.G_fade_up = False
+                self.G_fade = False
+                self.B_fade = True
+        if self.B_fade:
+            if self.B_fade_up:
+                if self.fade_tick:
+                    self.background[2] += 1
+                    self.fade_tick = False
+                else:
+                    self.fade_tick = True
+            else:
+                if self.fade_tick:
+                    self.background[2]  -= 1
+                    self.fade_tick = False
+                else:
+                    self.fade_tick = True
+            if self.background[2] == 0:
+                self.B_fade_up = True
+                self.B_fade = False
+                self.R_fade = True
+            if self.background[2] == 40:
+                self.B_fade_up = False
+                self.B_fade = False
+                self.R_fade = True
+        screen.fill(self.background)
+
 class PlayerProjectile:
     def __init__(self, x, y, color, size_x, size_y, speed):
         self.rect = pygame.Rect(x, y, size_x, size_y)
@@ -291,83 +368,6 @@ def SaveGame():
         savefile.write(str(point_count))
         savefile.close()
 
-def fade_background():
-    global background
-    global R_fade
-    global R_fade_up
-    global G_fade
-    global G_fade_up
-    global B_fade
-    global B_fade_up
-    global fade_tick
-    # Background Color Fade
-    if R_fade:
-        if R_fade_up:
-            if fade_tick:
-                background[0] += 1
-                fade_tick = False
-            else:
-                fade_tick = True
-        else:
-            if fade_tick:
-                background[0] -= 1
-                fade_tick = False
-            else:
-                fade_tick = True
-        if background[0] == 0:
-            R_fade_up = True
-            R_fade = False
-            G_fade = True
-        if background[0] == 40:
-            R_fade_up = False
-            R_fade = False
-            G_fade = True
-
-    if G_fade:
-        if  G_fade_up:
-            if fade_tick:
-                background[1] += 1
-                fade_tick = False
-            else:
-                fade_tick = True
-        else:
-            if fade_tick:
-                background[1] -= 1
-                fade_tick = False
-            else:
-                fade_tick = True
-        if background[1] == 0:
-            G_fade_up = True
-            G_fade = False
-            B_fade = True
-        if background[1] == 40:
-            G_fade_up = False
-            G_fade = False
-            B_fade = True
-    
-    if B_fade:
-        if B_fade_up:
-            if fade_tick:
-                background[2] += 1
-                fade_tick = False
-            else:
-                fade_tick = True
-        else:
-            if fade_tick:
-                background[2]  -= 1
-                fade_tick = False
-            else:
-                fade_tick = True
-        if background[2] == 0:
-            B_fade_up = True
-            B_fade = False
-            R_fade = True
-        if background[2] == 40:
-            B_fade_up = False
-            B_fade = False
-            R_fade = True
-    screen.fill(background)
-
 def move_stars():
     # Get global variables
     global stars1_curpos_x
@@ -527,12 +527,6 @@ def SpawnGrey():
     )
 
 def EnemySpawner(enemy_type, spawn_rate):
-    # create a dictionary for the EnemySpawner function/object
-    if not hasattr(EnemySpawner, "cnt"):
-        EnemySpawner.cnt = {}
-    # if the enemy type is not in the dictionary, add it with a count of 0
-    if enemy_type not in EnemySpawner.cnt:
-        EnemySpawner.cnt[enemy_type] = 0
     # increment the count for the enemy type
     EnemySpawner.cnt[enemy_type] += 1
     # if the count for the enemy type has reached the spawn rate, spawn the enemy and reset the count
@@ -558,6 +552,7 @@ def DisplayHUD():
     screen.blit(level_green, (width - (level_green.get_width() + 10), 10))
 
 def LevelManager():
+        global level
         if level == 10:
             pass
         elif level == 9:
@@ -598,7 +593,6 @@ def LevelTransition(next_level):
 
 def DifficultyCheck():
     global level
-    global frame_counter
     if level == 10:
         pass
     elif level == 9.5:
@@ -651,6 +645,11 @@ def DifficultyCheck():
             PlayMusic("fadeout", 2.5)
     
 # -----------------------------------------------------------------------------------------------------------------------------
+
+# Enemy list
+EnemySpawner.cnt = {}
+for enemy in ["arrow", "yellow", "grey"]:
+    EnemySpawner.cnt[enemy] = 0
 
 # Enemy Sprites
 ARROW_SPRITE = LoadImg("Arrow.png", ARROW_SCALE)
@@ -735,14 +734,7 @@ explosions = []
 # -----------------------------------------------------------------------------------------------------------------------------
 
 # Background Fade init
-background = [1, 1, 1]
-R_fade = True
-R_fade_up = True
-G_fade = False
-G_fade_up = False
-B_fade = False
-B_fade_up = False
-fade_tick = True
+background_fader = BackgroundFader()
 
 # Game Init
 clock = pygame.time.Clock()
@@ -797,7 +789,7 @@ PlayMusic(1)
 while running:
 
     # Draw Background
-    fade_background()                               # blit included
+    background_fader.fade()                               # blit included
     move_stars()                                    # blit included
 
     # -----------------------------------------------------------------------------------------------------------------------------
