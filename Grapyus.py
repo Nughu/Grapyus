@@ -23,11 +23,11 @@ TEXT_YELLOW = Fore.YELLOW
 TEXT_GREEN = Fore.GREEN
 TEXT_RED = Fore.RED
 TEXT_CYAN = Fore.CYAN
-SHIP_SCALE = width//17, height//17                  # Scale to fit aspect ratio of sprite
-FLAME_SCALE = width//17, (width//17)*0.8666         # Scale to fit aspect ratio of sprite
-ARROW_SCALE = width//11, (width//11)*0.5625         # Scale to fit aspect ratio of sprite
-YELLOW_SCALE = width//11, (width//11)*0.875         # Scale to fit aspect ratio of sprite
-GREY_SCALE = width//17, height//17                   # Scale to fit aspect ratio of sprite
+SHIP_SCALE = width//17, height//17                      # Scale to fit aspect ratio of sprite
+FLAME_SCALE = width//17, (width//17)*0.8666             # Scale to fit aspect ratio of sprite
+ARROW_SCALE = width//11, (width//11)*0.5625             # Scale to fit aspect ratio of sprite
+YELLOW_SCALE = width//11, (width//11)*0.875             # Scale to fit aspect ratio of sprite
+GREY_SCALE = width//17, height//17                      # Scale to fit aspect ratio of sprite
 STARS_WIDTH, STARS_HEIGHT = 1498, 1060
 STARS_SCALE = 1.5
 STARS_EXITFRAME = 0 - (STARS_WIDTH * STARS_SCALE)
@@ -42,7 +42,7 @@ PLAYER_SHOT_SPEED = 10
 YELLOW_SHOT_SPEED = 6
 GREY_SHOT_SPEED = 7
 SHIPEXP_FRAME_DELAY = 5
-NORMAL_FIRERATE = 0.4                               # delay between shots in normal fire mode (in seconds)
+NORMAL_FIRERATE = 0.4                                   # delay between shots in normal fire mode (in seconds)
 
 # -----------------------------------------------------------------------------------------------------------------------------
 
@@ -243,7 +243,7 @@ class Grey:
             self.move_delay = 0
         self.flame.set_alpha(randint(150, 190))
         self.hitbox.center = self.rect.center
-        if self.rect.x > ship_rect.x + ship_size_x:
+        if self.rect.x > ship_rect.x + ship_size_x * 3:
             self.shoot()
     def draw(self):
         screen.blit(self.sprite, self.rect)
@@ -282,10 +282,12 @@ def LoadGame():
             savefile.close()
             return int(loaded_game)
     else:
+        if not os.path.exists(SAVE_DIR):
+            os.mkdir(SAVE_DIR)
         return 0
 
 def SaveGame():
-    with open ((SAVE_DIR + "save.lol"), "w+") as savefile:
+    with open ((SAVE_DIR + "save.lol"), "w") as savefile:
         savefile.write(str(point_count))
         savefile.close()
 
@@ -723,7 +725,7 @@ MUSIC_PLAYLIST = [
 
 # Variables
 point_count = 0
-level = 0                  # Game starts at this level
+level = 3                  # Game starts at this level
 level_counter = 0
 arrow_counter = 0
 yellow_counter = 0
