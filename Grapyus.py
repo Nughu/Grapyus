@@ -136,6 +136,35 @@ class BackgroundFader:
                 self.R_fade = True
         screen.fill(self.background)
 
+class StarsMover:
+    def __init__(self):
+        self.stars1 = LoadImg("Stars.png", (STARS_WIDTH * STARS_SCALE, STARS_HEIGHT * STARS_SCALE))
+        self.stars1_curpos_x, self.stars1_curpos_y = 0, 0
+        self.stars2 = LoadImg("Stars.png", (STARS_WIDTH * STARS_SCALE, STARS_HEIGHT * STARS_SCALE))
+        self.stars2_curpos_x, self.stars2_curpos_y = (STARS_WIDTH * STARS_SCALE), 0
+    def move(self):
+        # Move back to start
+        if self.stars1_curpos_x <= STARS_EXITFRAME:
+            self.stars1_curpos_x, self.stars1_curpos_y = (STARS_WIDTH * STARS_SCALE), 0
+        if self.stars2_curpos_x <= STARS_EXITFRAME:
+            self.stars2_curpos_x, self.stars2_curpos_y = (STARS_WIDTH * STARS_SCALE), 0
+        # Do movement
+        if "Right" in held_keys:
+            self.stars1_curpos_x -= 4
+            self.stars2_curpos_x -= 4
+        elif "Left" in held_keys:
+            self.stars1_curpos_x -= 2
+            self.stars2_curpos_x -= 2
+        else:
+            self.stars1_curpos_x -= 3
+            self.stars2_curpos_x -= 3
+        # Flicker
+        self.stars1.set_alpha(randint(170, 175))
+        self.stars2.set_alpha(randint(170, 175))
+        # Draw Stars
+        screen.blit(self.stars1, [self.stars1_curpos_x, self.stars1_curpos_y])
+        screen.blit(self.stars2, [self.stars2_curpos_x, self.stars2_curpos_y])
+
 class PlayerProjectile:
     def __init__(self, x, y, color, size_x, size_y, speed):
         self.rect = pygame.Rect(x, y, size_x, size_y)
@@ -367,36 +396,6 @@ def SaveGame():
     with open ((SAVE_DIR + "save.lol"), "w") as savefile:
         savefile.write(str(point_count))
         savefile.close()
-
-def move_stars():
-    # Get global variables
-    global stars1_curpos_x
-    global stars1_curpos_y
-    global stars2_curpos_x
-    global stars2_curpos_y
-    global held_keys
-    # Move back to start
-    if stars1_curpos_x <= STARS_EXITFRAME:
-        stars1_curpos_x, stars1_curpos_y = (STARS_WIDTH * STARS_SCALE), 0
-    if stars2_curpos_x <= STARS_EXITFRAME:
-        stars2_curpos_x, stars2_curpos_y = (STARS_WIDTH * STARS_SCALE), 0
-            # print(stars1_curpos_x, stars2_curpos_x)
-    # Do movement
-    if "Right" in held_keys:
-        stars1_curpos_x -= 4
-        stars2_curpos_x -= 4
-    elif "Left" in held_keys:
-        stars1_curpos_x -= 2
-        stars2_curpos_x -= 2
-    else:
-        stars1_curpos_x -= 3
-        stars2_curpos_x -= 3
-    # Flicker
-    stars1.set_alpha(randint(170, 175))
-    stars2.set_alpha(randint(170, 175))
-    # Draw Stars
-    screen.blit(stars1, [stars1_curpos_x, stars1_curpos_y])
-    screen.blit(stars2, [stars2_curpos_x, stars2_curpos_y])
 
 def ClearFont():
     print(Style.RESET_ALL + "")
@@ -736,17 +735,14 @@ explosions = []
 # Background Fade init
 background_fader = BackgroundFader()
 
+# Stars Init
+stars_mover = StarsMover()
+
 # Game Init
 clock = pygame.time.Clock()
 last_shot = time()
 shoot_delay = NORMAL_FIRERATE
 time_start = time()
-
-# Stars Init
-stars1 = LoadImg("Stars.png", (STARS_WIDTH * STARS_SCALE, STARS_HEIGHT * STARS_SCALE))
-stars1_curpos_x, stars1_curpos_y = 0, 0
-stars2 = LoadImg("Stars.png", (STARS_WIDTH * STARS_SCALE, STARS_HEIGHT * STARS_SCALE))
-stars2_curpos_x, stars2_curpos_y = (STARS_WIDTH * STARS_SCALE), 0
 
 # Ship Init
 ship = LoadImg("Ship_sideways.png", SHIP_SCALE)
@@ -789,8 +785,8 @@ PlayMusic(1)
 while running:
 
     # Draw Background
-    background_fader.fade()                               # blit included
-    move_stars()                                    # blit included
+    background_fader.fade()                                 # blit included
+    stars_mover.move()                                     # blit included
 
     # -----------------------------------------------------------------------------------------------------------------------------
 
