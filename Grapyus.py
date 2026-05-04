@@ -317,17 +317,18 @@ class Explosion:
             screen.blit(self.frames[self.frame_index], self.rect)
 
 class Pickup:
-    def __init__(self, x, y, type:int, frame_delay=2):
+    def __init__(self, x, y, type:int, frame_delay=2, move_speed=2):
         self.rect = PICKUP_SPRITES[0].get_rect()
         self.active = True
         self.rect.x = x
         self.rect.y = y
+        self.move_speed = move_speed
         self.sprite_index = 0
         self.frame_delay = frame_delay
         self.tick = 0
     def update(self):
         if self.active:
-            self.rect.x -= 1                # move left across the screen
+            self.rect.x -= self.move_speed                # move left across the screen
             self.tick += 1
             if self.tick >= self.frame_delay:
                 self.tick = 0
@@ -721,7 +722,7 @@ def LevelManager():
             game_over = True
             GameEnd("win")
         elif level == 5.5:
-            LevelTransition(6, 240)
+            LevelTransition(6, 300)
         elif level == 5:
             EnemySpawner("arrow", 20)
             EnemySpawner("yellow", 200)
@@ -773,10 +774,10 @@ def DifficultyCheck():
     elif level == 5.5:
         LevelTransition(6)
     elif level == 5:
-        if point_count >= 1700:
+        if point_count >= 1800:
             frame_counter = 0
             level = 5.5
-            PlayMusic("fadeout", 4)
+            PlayMusic("fadeout", 5)
     elif level == 4:
         if point_count >= 1500:
             frame_counter = 0
