@@ -653,10 +653,7 @@ def LevelManager():
         elif level == 1:
             EnemySpawner("arrow", 30)
         elif level == 0:
-            frame_counter += 1
-            if frame_counter == 150:
-                level = 1
-                frame_counter = 0
+            LevelTransition(1)
 
 def LevelTransition(next_level):
     ''' Handles the transition period between levels. Waits for a certain number of frames, then increases the level and changes the music. The next_level parameter is the level that will be transitioned to after the wait. '''
