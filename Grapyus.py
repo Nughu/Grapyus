@@ -17,43 +17,69 @@ music_volume = 0.7
 
 # Constants
 CENTER = width//2, height//2
+'''defines the center of the screen'''
 IMG_DIR = ".\\Images\\"
+'''defines the directory where all images are stored'''
 SOUND_DIR = ".\\Sounds\\"
+'''defines the directory where all sounds are stored'''
 SAVE_DIR = ".\\Save\\"
+'''defines the directory where the save file is stored'''
 TEXT_YELLOW = Fore.YELLOW
+'''defines the color for yellow text in the terminal'''
 TEXT_GREEN = Fore.GREEN
+'''defines the color for green text in the terminal'''
 TEXT_RED = Fore.RED
-TEXT_CYAN = Fore.CYAN
+'''defines the color for red text in the terminal'''
 SHIP_SCALE = width//17, height//17                      # Scale to fit aspect ratio of sprite
+'''defines the scale for the player's ship sprite'''
 FLAME_SCALE = width//17, (width//17)*0.8666             # Scale to fit aspect ratio of sprite
+'''defines the scale for the ship's flame sprite'''
 ARROW_SCALE = width//11, (width//11)*0.5625             # Scale to fit aspect ratio of sprite
+'''defines the scale for the arrow enemy sprite'''
 YELLOW_SCALE = width//11, (width//11)*0.875             # Scale to fit aspect ratio of sprite
+'''defines the scale for the yellow fighter enemy sprite'''
 GREY_SCALE = width//17, height//17                      # Scale to fit aspect ratio of sprite
+'''defines the scale for the grey fighter enemy sprite'''
 STARS_WIDTH, STARS_HEIGHT = 1498, 1060
+'''defines the original width and height of the stars background image'''
 STARS_SCALE = 1.5
+'''defines the scale for the stars background image'''
 STARS_EXITFRAME = 0 - (STARS_WIDTH * STARS_SCALE)
+'''defines the X position at which the stars background image will reset to the starting position'''
 MOVE_SPEED = 4
+'''defines the speed at which the player's ship moves in pixels per frame'''
 ARROW_SPEED = 7
+'''defines the speed at which the arrow enemy moves in pixels per frame'''
 ARROW_POINTS = 10
+'''defines the number of points awarded for destroying an arrow enemy'''
 YELLOW_SPEED = 1
+'''defines the speed at which the yellow fighter enemy moves in pixels per frame'''
 YELLOW_POINTS = 30
+'''defines the number of points awarded for destroying a yellow fighter enemy'''
 GREY_SPEED = 3
+'''defines the speed at which the grey fighter enemy moves in pixels per frame'''
 GREY_POINTS = 50
+'''defines the number of points awarded for destroying a grey fighter enemy'''
 PLAYER_SHOT_SPEED = 10
+'''defines the speed at which the player's projectiles move in pixels per frame'''
 YELLOW_SHOT_SPEED = 6
+'''defines the speed at which the yellow fighter enemy's projectiles move in pixels per frame'''
 GREY_SHOT_SPEED = 7
+'''defines the speed at which the grey fighter enemy's projectiles move in pixels per frame'''
 SHIPEXP_FRAME_DELAY = 5
+'''defines the number of frames to wait before advancing to the next frame in the player's explosion animation'''
 NORMAL_FIRERATE = 0.4                                   # delay between shots in normal fire mode (in seconds)
+'''defines the delay between shots in normal fire mode in seconds'''
 
 # -----------------------------------------------------------------------------------------------------------------------------
 
 # Pygame Init
 pygame.init()
 screen = pygame.display.set_mode((width, height), display=0, vsync=0)
-pygame.display.set_caption("Grapyus")
 
 # Initial terminal clear
 clear = lambda: os.system('cls')
+'''defines a lambda function to clear the terminal'''
 clear()
 
 # -----------------------------------------------------------------------------------------------------------------------------
@@ -61,6 +87,7 @@ clear()
 # Classes
 class BackgroundFader:
     def __init__(self):
+        ''' Initializes the background fader. The background starts as white and will fade through different colors over time. '''
         self.background = [1, 1, 1]
         self.R_fade = True
         self.R_fade_up = True
@@ -70,6 +97,7 @@ class BackgroundFader:
         self.B_fade_up = False
         self.fade_tick = True
     def fade(self):
+        ''' Moves the color fade forward by one step. This function should be called every frame to create a continuous fading effect. The background will fade through different colors in a loop. '''
         # Background Color Fade
         if self.R_fade:
             if self.R_fade_up:
@@ -138,11 +166,13 @@ class BackgroundFader:
 
 class StarsMover:
     def __init__(self):
+        ''' Initializes the stars mover. The stars are represented by two images that move across the screen to create a continuous scrolling effect. '''
         self.stars1 = LoadImg("Stars.png", (STARS_WIDTH * STARS_SCALE, STARS_HEIGHT * STARS_SCALE))
         self.stars1_curpos_x, self.stars1_curpos_y = 0, 0
         self.stars2 = LoadImg("Stars.png", (STARS_WIDTH * STARS_SCALE, STARS_HEIGHT * STARS_SCALE))
         self.stars2_curpos_x, self.stars2_curpos_y = (STARS_WIDTH * STARS_SCALE), 0
     def move(self):
+        ''' Moves the stars across the screen. When a star image moves off the left side of the screen, it is moved back to the right side to create a continuous scrolling effect. The stars also flicker by randomly changing their alpha value each frame. '''
         # Move back to start
         if self.stars1_curpos_x <= STARS_EXITFRAME:
             self.stars1_curpos_x, self.stars1_curpos_y = (STARS_WIDTH * STARS_SCALE), 0
@@ -165,24 +195,48 @@ class StarsMover:
         screen.blit(self.stars1, [self.stars1_curpos_x, self.stars1_curpos_y])
         screen.blit(self.stars2, [self.stars2_curpos_x, self.stars2_curpos_y])
 
-class HUD:
+class HUD:                                                                                  # everything below here still needs docstrings, will add later cause it's eating up my copilot tokens
     def __init__(self):
         global point_count
         global level
         self.points_font = pygame.font.Font(IMG_DIR + "KodeMono.ttf", 20)
         self.pause_font = pygame.font.Font(IMG_DIR + "KodeMono.ttf", 40)
+        self.start_font = pygame.font.Font(IMG_DIR + "KodeMono.ttf", 80)
         self.levelstr = self.points_font.render("Level: ", True, (255, 255, 255))
+        self.levelstr_width = self.levelstr.get_width()
         self.pointstr = self.points_font.render("Points: ", True, (255, 255, 255))
+        self.pointstr_width = self.pointstr.get_width()
+        self.pausestr = self.pause_font.render("- PAUSED -", True, (0, 0, 0))
+        self.pausestr_width = self.pausestr.get_width()
+        self.pausestr_height = self.pausestr.get_height()
     def ShowPoints(self):
         self.points = self.points_font.render(str(point_count), True, (0, 255, 0))
         self.level = self.points_font.render(str(level), True, (0, 255, 0))
         screen.blit(self.pointstr, (10, 10))
-        screen.blit(self.points, (self.pointstr.get_width() + 10, 10))
-        screen.blit(self.levelstr, (width - (self.levelstr.get_width() + self.level.get_width() + 10), 10))
+        screen.blit(self.points, (self.pointstr_width + 10, 10))
+        screen.blit(self.levelstr, (width - (self.levelstr_width + self.level.get_width() + 10), 10))
         screen.blit(self.level, (width - (self.level.get_width() + 10), 10))
     def Pause(self):
         screen.fill("white")
-        screen.blit(self.pause_font.render("- PAUSED -", True, (0, 0, 0)), (width//2 - self.pause_font.size("- PAUSED -")[0]//2, height//2 - self.pause_font.size("- PAUSED -")[1]//2))
+        screen.blit(self.pausestr, (CENTER[0] - self.pausestr_width//2, CENTER[1] - self.pausestr_height//2))
+        pygame.display.flip()
+    def StartScreen(self):
+        screen.fill("white")
+        screen.blit(self.start_font.render("- GAME START -", True, (0, 0, 0)), (CENTER[0] - self.start_font.size("- GAME START -")[0]//2, CENTER[1] - self.start_font.size("- GAME START -")[1]//2))
+        pygame.display.flip()
+    def EndScreen(self):
+        screen.fill("white")
+        screen.blit(self.start_font.render("- GAME END -", True, (0, 0, 0)), (CENTER[0] - self.start_font.size("- GAME END -")[0]//2, CENTER[1] - self.start_font.size("- GAME END -")[1]//2))
+        pygame.display.flip()
+    def GameOverScreen(self):
+        screen.fill("red")
+        screen.blit(self.start_font.render("- GAME OVER -", True, (0, 0, 0)), (CENTER[0] - self.start_font.size("- GAME OVER -")[0]//2, CENTER[1] - self.start_font.size("- GAME OVER -")[1]//2))
+        pygame.display.flip()
+    def WinScreen(self):
+        screen.fill("white")
+        screen.blit(self.start_font.render("- YOU WIN! -", True, (0, 0, 0)), (CENTER[0] - self.start_font.size("- YOU WIN! -")[0]//2, CENTER[1] - self.start_font.size("- YOU WIN! -")[1]//2))
+        screen.blit(self.pause_font.render("Final Score: ", True, (0, 0, 0)), (CENTER[0] - self.pause_font.size("Final Score: " + str(point_count))[0]//2, CENTER[1] + self.start_font.size("- YOU WIN! -")[1]//2))
+        screen.blit(self.pause_font.render(str(point_count), True, (0, 255, 0)), (CENTER[0] - self.pause_font.size("Final Score: " + str(point_count))[0]//2 + self.pause_font.size("Final Score: ")[0], CENTER[1] + self.start_font.size("- YOU WIN! -")[1]//2))
         pygame.display.flip()
 
 class PlayerProjectile:
@@ -396,12 +450,14 @@ class Grey:
 
 # Functions
 def LoadImg(image, size):
+    ''' Loads and scales an image from the Images folder. Returns the image as a pygame surface. '''
     img_unscaled = pygame.image.load(IMG_DIR + image)
     img_unscaled.convert()
     img = pygame.transform.scale(img_unscaled, size) 
     return img
 
 def LoadGame():
+    ''' Loads the saved point count from the save file. If no save file exists, returns 0. '''
     if os.path.exists(SAVE_DIR + "save.lol"):
         with open((SAVE_DIR + "save.lol"), "r") as savefile:
             loaded_game = savefile.read()
@@ -413,23 +469,22 @@ def LoadGame():
         return 0
 
 def SaveGame():
+    ''' Saves the current point count to the save file. If no save file exists, creates one. '''
     with open ((SAVE_DIR + "save.lol"), "w") as savefile:
         savefile.write(str(point_count))
         savefile.close()
 
 def ClearFont():
+    ''' Resets the terminal font color to default. Call this after printing colored text to prevent color bleed. '''
     print(Style.RESET_ALL + "")
 
-def GameExit(end_screen=-1):
+def GameEnd(end_screen="exit"):
+    ''' Ends the game and shows the end screen with final stats. '''
     PlayMusic("gameover.ogg")
-    if end_screen == -1:
-        end_screen = LoadImg("EndScreen.png", (width, height))
-    else:
-        end_screen = LoadImg(end_screen, (width, height))
-    screen.fill([255, 255, 255])
-    screen.blit(end_screen, (0, 0))
-    clock.tick(60)
-    pygame.display.flip()
+    if end_screen == "exit":
+        hud.EndScreen()
+    elif end_screen == "win":
+        hud.WinScreen()
     time_end = time()
     clear()
     SaveGame()
@@ -445,6 +500,7 @@ def GameExit(end_screen=-1):
     sys.exit(0)
 
 def GameOver():
+    ''' Ends the game and shows the end screen with final stats. Called when the player dies. '''
     pygame.mixer.music.stop()
     screen.fill("red")
     pygame.display.flip()
@@ -459,31 +515,20 @@ def GameOver():
     sleep(1)
     PlayMusic("gameover.ogg")
     ClearFont()
-    end_screen = LoadImg("EndScreen.png", (width, height))
-    screen.fill("white")
-    screen.blit(end_screen, (0, 0))
-    pygame.display.flip()
-    # gameover_cycle = True
-    # while gameover_cycle:
-    #     sleep(0.1)
-    #     background[1] += 5
-    #     background[2] += 5
-    #     screen.fill(background)
-    #     screen.blit(end_screen, (0, 0))
-    #     pygame.display.flip()
-    #     if background[1] == 255:
-    #         gameover_cycle = False
+    hud.GameOverScreen()
     sleep(5)
     pygame.quit()
     os._exit(0)
 
 def PlayerDead():
+    ''' Called when the player dies. Triggers the explosion animation and ends the game after it finishes. '''
     global game_over
     game_over = True
     explosions.append(Explosion(ship_rect.center, SHIP_EXPLOSION_FRAMES, SHIPEXP_FRAME_DELAY, is_player=True))
     ExplosionSound("player")
 
 def PlayMusic(track, duration=-1):
+    ''' Plays the specified music track. If input is "fadeout", fades out the current music over the specified duration. '''
     if track == "fadeout":
         pygame.mixer.music.fadeout(int(duration*1000))
     elif isinstance(track, int):
@@ -496,6 +541,7 @@ def PlayMusic(track, duration=-1):
         pygame.mixer.music.play(-1, 0.0)
 
 def PlayerShoot(projectile_mode):
+    ''' Called when the player shoots. Creates a new projectile and adds it to the player_projectiles list. The type of projectile created depends on the current fire mode. '''
     if projectile_mode == "normal":
         player_projectiles.append(
             PlayerProjectile(
@@ -510,12 +556,14 @@ def PlayerShoot(projectile_mode):
         pygame.mixer.Sound.play(SHOOT_SOUND_NORMAL)
 
 def ExplosionSound(type=-1):
+    ''' Plays a random explosion sound. If type is "player", plays the player explosion sound instead. '''
     if type == "player":
         pygame.mixer.Sound.play(PLAYER_EXPLOSION_SOUND)
     else:
         pygame.mixer.Sound.play(choice(EXPLOSION_SOUNDS))
 
 def SpawnArrow():
+    ''' Spawns a new arrow enemy at a random Y position on the right side of the screen and adds it to the enemies list. '''
     enemies.append(
         Arrow(
             width,                                  # Arrow X on right side of screen
@@ -526,6 +574,7 @@ def SpawnArrow():
     )
 
 def SpawnYellow():
+    ''' Spawns a new yellow fighter enemy at a random Y position on the right side of the screen and adds it to the enemies list. '''
     enemies.append(
         Yellow(
             width,
@@ -536,6 +585,7 @@ def SpawnYellow():
     )
 
 def SpawnGrey():
+    ''' Spawns a new grey fighter enemy at a random Y position on the right side of the screen and adds it to the enemies list. '''
     enemies.append(
         Grey(
             width,
@@ -546,6 +596,7 @@ def SpawnGrey():
     )
 
 def EnemySpawner(enemy_type, spawn_rate):
+    ''' Spawns enemies of the specified type at the specified spawn rate. The spawn rate is determined by how many frames must pass before an enemy of that type is spawned. '''
     # increment the count for the enemy type
     EnemySpawner.cnt[enemy_type] += 1
     # if the count for the enemy type has reached the spawn rate, spawn the enemy and reset the count
@@ -561,6 +612,7 @@ def EnemySpawner(enemy_type, spawn_rate):
             EnemySpawner.cnt[enemy_type] = 0
 
 def LevelManager():
+        ''' Manages the current level and spawns enemies accordingly. Also handles level transitions. '''
         global level
         global frame_counter
         if level == 10:
@@ -578,7 +630,8 @@ def LevelManager():
         elif level == 5.5:
             LevelTransition(6)
         elif level == 5:
-            pass
+            game_over = True
+            GameEnd("win")
         elif level == 4.5:
             LevelTransition(5)
         elif level == 4:
@@ -606,6 +659,7 @@ def LevelManager():
                 frame_counter = 0
 
 def LevelTransition(next_level):
+    ''' Handles the transition period between levels. Waits for a certain number of frames, then increases the level and changes the music. The next_level parameter is the level that will be transitioned to after the wait. '''
     global frame_counter
     global level
     frame_counter += 1
@@ -615,6 +669,7 @@ def LevelTransition(next_level):
         PlayMusic(next_level)
 
 def DifficultyCheck():
+    ''' Checks the current point count and increases the level accordingly. This function is called whenever an enemy is killed to check if the player has reached the point threshold for the next level. '''
     global level
     global frame_counter
     if level == 10:
@@ -767,7 +822,7 @@ hud = HUD()
 ship = LoadImg("Ship_sideways.png", SHIP_SCALE)
 ship_size_x, ship_size_y = ship.get_size()
 ship_rect = ship.get_rect()
-ship_rect.x, ship_rect.y = (ship_size_x * 2), height//2
+ship_rect.x, ship_rect.y = (ship_size_x * 2), CENTER[1]
 ship_hitbox = ship_rect.inflate(- ship_size_x * 0.2, - ship_size_y * 0.2)
 ship_velocity_x = 0
 ship_velocity_y = 0
@@ -783,17 +838,14 @@ flame_light_rect = flame_light.get_rect()
 # -----------------------------------------------------------------------------------------------------------------------------
 
 # Start Game
+pygame.display.set_caption("Grapyus")
 pygame.display.set_icon(LoadImg("Grapyus.ico", (16, 16)))
 PlayMusic("intro.ogg")
 print(TEXT_GREEN + "\n- GAME START -")
 running = True
 high_score = LoadGame()
 ClearFont()
-start_screen = LoadImg("StartScreen.png", (width, height))
-screen.fill([255, 255, 255])
-screen.blit(start_screen, (0, 0))
-pygame.display.flip()
-clock.tick(60)
+hud.StartScreen()
 sleep(2)
 time_start = time()
 PlayMusic(1)
@@ -826,7 +878,7 @@ while running:
                 held_keys.append("Space")
             # Exit Game
             if event.key == K_ESCAPE:
-                GameExit()
+                GameEnd()
             # Pause Game
             if event.key == K_TAB:
                 paused = True
@@ -839,7 +891,7 @@ while running:
                                 paused = False
                                 pygame.mixer.music.play(-1, 0.0, 250)
                             if event.key == K_ESCAPE:
-                                GameExit()
+                                GameEnd()
         elif event.type == KEYUP:
             # Movement
             if event.key == K_a:
