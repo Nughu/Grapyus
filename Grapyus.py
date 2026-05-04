@@ -317,7 +317,7 @@ class Explosion:
             screen.blit(self.frames[self.frame_index], self.rect)
 
 class Pickup:
-    def __init__(self, x, y, type:int, frame_delay=2, move_speed=2):
+    def __init__(self, x, y, type:int, move_speed, frame_delay=2):
         self.rect = PICKUP_SPRITES[0].get_rect()
         self.active = True
         self.rect.x = x
@@ -345,6 +345,8 @@ class Pickup:
         else:
             screen.blit(PICKUP_SPRITE_EMPTY, self.rect)
     def check(self):
+        if self.rect.x <= (0 - self.rect.width):
+            pickups.remove(self)
         if self.rect.colliderect(ship_rect):
             if self.active:
                 SwitchFireMode()
@@ -529,6 +531,10 @@ def ClearFont():
     ''' Resets the terminal font color to default. Call this after printing colored text to prevent color bleed. '''
     print(Style.RESET_ALL + "")
 
+def GetTime():
+    curtime = round((time() - time_start), 1)
+    return curtime
+
 def GameEnd(end_screen="exit"):
     ''' Ends the game and shows the end screen with final stats. '''
     PlayMusic("gameover.ogg")
@@ -541,7 +547,7 @@ def GameEnd(end_screen="exit"):
     SaveGame()
     print(TEXT_YELLOW + "- GAME END -\n")
     print(TEXT_YELLOW + "Points collected:  " + TEXT_GREEN + str(point_count))
-    print(TEXT_YELLOW + "Time survived:  " + TEXT_GREEN + str(int(time_end - time_start)) + " Seconds")
+    print(TEXT_YELLOW + "Time survived:  " + TEXT_GREEN + str(GetTime()) + " Seconds")
     if point_count > high_score:
             print(TEXT_GREEN + "New Highscore!")
             SaveGame()
@@ -559,7 +565,7 @@ def GameOver():
     clear()
     print(TEXT_RED + "- GAME OVER -")
     print(TEXT_YELLOW + "Points collected:  " + TEXT_GREEN + str(point_count))
-    print(TEXT_YELLOW + "Time survived:  " + TEXT_GREEN + str(int(time_end - time_start)) + " Seconds")
+    print(TEXT_YELLOW + "Time survived:  " + TEXT_GREEN + str(GetTime()) + " Seconds")
     if point_count > high_score:
             print(TEXT_GREEN + "New Highscore!")
             SaveGame()
@@ -627,12 +633,13 @@ def ExplosionSound(type=-1):
     else:
         pygame.mixer.Sound.play(choice(EXPLOSION_SOUNDS))
 
-def SpawnPickup():
+def SpawnPickup(move_speed=3):
     pickups.append(
         Pickup(
             width,
             height//2,
-            1
+            1,
+            move_speed
         ))
 
 def SwitchFireMode():
@@ -722,12 +729,12 @@ def LevelManager():
             game_over = True
             GameEnd("win")
         elif level == 5.5:
-            LevelTransition(6, 300)
+            LevelTransition(6)
         elif level == 5:
-            EnemySpawner("arrow", 20)
-            EnemySpawner("yellow", 200)
+            EnemySpawner("arrow", 10)
+            EnemySpawner("yellow", 150)
         elif level == 4.5:
-            LevelTransition(5)
+            LevelTransition(5, 240)
         elif level == 4:
             EnemySpawner("arrow", 340)
             EnemySpawner("yellow", 140)
@@ -777,12 +784,12 @@ def DifficultyCheck():
         if point_count >= 1800:
             frame_counter = 0
             level = 5.5
-            PlayMusic("fadeout", 5)
+            PlayMusic("fadeout")
     elif level == 4:
         if point_count >= 1500:
             frame_counter = 0
             level = 4.5
-            PlayMusic("fadeout")
+            PlayMusic("fadeout", 4)
             SpawnPickup()
     elif level == 3:
         if point_count >= 800:
@@ -860,8 +867,8 @@ MUSIC_PLAYLIST = [
     ]
 
 # Variables
-point_count = 0
-level = 0                   # Game starts at this level
+point_count = 1400
+level = 4                   # Game starts at this level
 frame_counter = 0
 game_over = False
 firemode = "normal"
