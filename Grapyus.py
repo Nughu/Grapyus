@@ -693,12 +693,12 @@ def EnemySpawner(enemy_type, spawn_rate):
             SpawnGrey()
             EnemySpawner.cnt[enemy_type] = 0
 
-def LevelTransition(next_level):
+def LevelTransition(next_level:int, delay:int = 150):
     ''' Handles the transition period between levels. Waits for a certain number of frames, then increases the level and changes the music. The next_level parameter is the level that will be transitioned to after the wait. '''
     global frame_counter
     global level
     frame_counter += 1
-    if frame_counter == 150:
+    if frame_counter >= delay:
         level = next_level
         frame_counter = 0
         PlayMusic(next_level)
@@ -721,9 +721,10 @@ def LevelManager():
             game_over = True
             GameEnd("win")
         elif level == 5.5:
-            LevelTransition(6)
+            LevelTransition(6, 240)
         elif level == 5:
             EnemySpawner("arrow", 20)
+            EnemySpawner("yellow", 200)
         elif level == 4.5:
             LevelTransition(5)
         elif level == 4:
@@ -775,7 +776,7 @@ def DifficultyCheck():
         if point_count >= 1700:
             frame_counter = 0
             level = 5.5
-            PlayMusic("fadeout")
+            PlayMusic("fadeout", 4)
     elif level == 4:
         if point_count >= 1500:
             frame_counter = 0
