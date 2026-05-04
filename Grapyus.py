@@ -316,6 +316,25 @@ class Explosion:
         if self.frame_index < len(self.frames):
             screen.blit(self.frames[self.frame_index], self.rect)
 
+class Pickup:
+    def __init__(self, x, y, type:int, frame_delay=2):
+        self.rect = PICKUP_SPRITES[0].get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.sprite_index = 0
+        self.frame_delay = frame_delay
+        self.tick = 0
+    def update(self):
+        self.rect.x -= 1                # move left across the screen
+        self.tick += 1
+        if self.tick >= self.frame_delay:
+            self.tick = 0
+            self.sprite_index = (self.sprite_index + 1)
+            if self.sprite_index >= len(PICKUP_SPRITES):
+                self.sprite_index = 0
+    def draw(self):
+        screen.blit(PICKUP_SPRITES[self.sprite_index], self.rect)
+
 class Arrow:
     def __init__(self, x, y, size, speed):
         self.explosion_frames = ARROW_EXPLOSION_FRAMES
@@ -464,6 +483,12 @@ def LoadImg(image, size):
     img = pygame.transform.scale(img_unscaled, size) 
     return img
 
+def LoadImgList(path:str, file_count:int, size:tuple):
+    list = []
+    for i in range(file_count):
+        list.append(LoadImg(f"{path}{i+1}.png", size))
+    return list
+
 def LoadGame():
     ''' Loads the saved point count from the save file. If no save file exists, returns 0. '''
     if os.path.exists(SAVE_DIR + "save.lol"):
@@ -570,6 +595,14 @@ def ExplosionSound(type=-1):
     else:
         pygame.mixer.Sound.play(choice(EXPLOSION_SOUNDS))
 
+def SpawnPickup():
+    pickups.append(
+        Pickup(
+            width,
+            height//2,
+            1
+        ))
+
 def SpawnArrow():
     ''' Spawns a new arrow enemy at a random Y position on the right side of the screen and adds it to the enemies list. '''
     enemies.append(
@@ -619,6 +652,16 @@ def EnemySpawner(enemy_type, spawn_rate):
             SpawnGrey()
             EnemySpawner.cnt[enemy_type] = 0
 
+def LevelTransition(next_level):
+    ''' Handles the transition period between levels. Waits for a certain number of frames, then increases the level and changes the music. The next_level parameter is the level that will be transitioned to after the wait. '''
+    global frame_counter
+    global level
+    frame_counter += 1
+    if frame_counter == 150:
+        level = next_level
+        frame_counter = 0
+        PlayMusic(next_level)
+
 def LevelManager():
         ''' Manages the current level and spawns enemies accordingly. Also handles level transitions. '''
         global level
@@ -638,8 +681,9 @@ def LevelManager():
         elif level == 5.5:
             LevelTransition(6)
         elif level == 5:
-            game_over = True
-            GameEnd("win")
+            pass
+            #game_over = True
+            #GameEnd("win")
         elif level == 4.5:
             LevelTransition(5)
         elif level == 4:
@@ -662,16 +706,6 @@ def LevelManager():
             EnemySpawner("arrow", 30)
         elif level == 0:
             LevelTransition(1)
-
-def LevelTransition(next_level):
-    ''' Handles the transition period between levels. Waits for a certain number of frames, then increases the level and changes the music. The next_level parameter is the level that will be transitioned to after the wait. '''
-    global frame_counter
-    global level
-    frame_counter += 1
-    if frame_counter == 150:
-        level = next_level
-        frame_counter = 0
-        PlayMusic(next_level)
 
 def DifficultyCheck():
     ''' Checks the current point count and increases the level accordingly. This function is called whenever an enemy is killed to check if the player has reached the point threshold for the next level. '''
@@ -700,10 +734,12 @@ def DifficultyCheck():
     elif level == 5:
         pass
     elif level == 4:
-        if point_count >= 1350:
+        # if point_count >= 1350:                   # return to this, just lowered for debugging purposes
+        if point_count >= 100:
             frame_counter = 0
             level = 4.5
             PlayMusic("fadeout", 2.5)
+            SpawnPickup()
     elif level == 3:
         if point_count >= 800:
             frame_counter = 0
@@ -735,35 +771,18 @@ YELLOW_FLAME = LoadImg("YellowFlame.png", YELLOW_SCALE)
 GREY_SPRITE = LoadImg("GreyFighter.png", GREY_SCALE)
 GREY_FLAME = LoadImg("GreyFlame.png", GREY_SCALE)
 
+# Pickup Sprites
+PICKUP_SPRITES = LoadImgList("Pickup\\", 27, (width//20, width//20))
+
 # Explosion Frames
 ARROW_EXPLOSION_SCALE = width//13, width//13
-ARROW_EXPLOSION_FRAMES = [
-    LoadImg("Explosions\\Arrow\\1.png", ARROW_EXPLOSION_SCALE),
-    LoadImg("Explosions\\Arrow\\2.png", ARROW_EXPLOSION_SCALE),
-    LoadImg("Explosions\\Arrow\\3.png", ARROW_EXPLOSION_SCALE),
-    LoadImg("Explosions\\Arrow\\4.png", ARROW_EXPLOSION_SCALE)
-]
+ARROW_EXPLOSION_FRAMES = LoadImgList("Explosions\\Arrow\\", 4, ARROW_EXPLOSION_SCALE)
 SHIP_EXPLOSION_SCALE = width//10, width//10
-SHIP_EXPLOSION_FRAMES = [
-    LoadImg("Explosions\\Ship\\1.png", SHIP_EXPLOSION_SCALE),
-    LoadImg("Explosions\\Ship\\2.png", SHIP_EXPLOSION_SCALE),
-    LoadImg("Explosions\\Ship\\3.png", SHIP_EXPLOSION_SCALE),
-    LoadImg("Explosions\\Ship\\4.png", SHIP_EXPLOSION_SCALE)
-]
+SHIP_EXPLOSION_FRAMES = LoadImgList("Explosions\\Ship\\", 4, SHIP_EXPLOSION_SCALE)
 YELLOW_EXPLOSION_SCALE = width//12, width//12
-YELLOW_EXPLOSION_FRAMES = [
-    LoadImg("Explosions\\YellowFighter\\1.png", YELLOW_EXPLOSION_SCALE),
-    LoadImg("Explosions\\YellowFighter\\2.png", YELLOW_EXPLOSION_SCALE),
-    LoadImg("Explosions\\YellowFighter\\3.png", YELLOW_EXPLOSION_SCALE),
-    LoadImg("Explosions\\YellowFighter\\4.png", YELLOW_EXPLOSION_SCALE)
-]
+YELLOW_EXPLOSION_FRAMES = LoadImgList("Explosions\\YellowFighter\\", 4, YELLOW_EXPLOSION_SCALE)
 GREY_EXPLOSION_SCALE = width//11, width//11
-GREY_EXPLOSION_FRAMES = [
-    LoadImg("Explosions\\Grey\\1.png", GREY_EXPLOSION_SCALE),
-    LoadImg("Explosions\\Grey\\2.png", GREY_EXPLOSION_SCALE),
-    LoadImg("Explosions\\Grey\\3.png", GREY_EXPLOSION_SCALE),
-    LoadImg("Explosions\\Grey\\4.png", GREY_EXPLOSION_SCALE)
-]
+GREY_EXPLOSION_FRAMES = LoadImgList("Explosions\\Grey\\", 4, GREY_EXPLOSION_SCALE)
 
 # Sounds
 SHOOT_SOUND_NORMAL = pygame.mixer.Sound(SOUND_DIR + "Player\\shoot_normal.ogg")
@@ -797,7 +816,7 @@ MUSIC_PLAYLIST = [
 
 # Variables
 point_count = 0
-level = 0                  # Game starts at this level
+level = 4                   # Game starts at this level
 frame_counter = 0
 game_over = False
 firemode = "normal"
@@ -806,6 +825,7 @@ player_projectiles = []
 enemy_projectiles = []
 enemies = []
 explosions = []
+pickups = []                # should probably only contain one pickup at a time
 
 
 # -----------------------------------------------------------------------------------------------------------------------------
@@ -963,6 +983,13 @@ while running:
         screen.blit(flame, flame_rect)
         screen.blit(flame_light, flame_light_rect)
 
+    # -----------------------------------------------------------------------------------------------------------------------------
+
+    # Update Pickups
+    for pickup in pickups[:]:
+        pickup.update()
+        pickup.draw()
+    
     # -----------------------------------------------------------------------------------------------------------------------------
 
     # Update Player Projectiles
