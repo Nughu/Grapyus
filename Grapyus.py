@@ -68,7 +68,7 @@ GREY_SHOT_SPEED = 7
 '''defines the speed at which the grey fighter enemy's projectiles move in pixels per frame'''
 SHIPEXP_FRAME_DELAY = 5
 '''defines the number of frames to wait before advancing to the next frame in the player's explosion animation'''
-NORMAL_SHOT_DELAY = 0.4                                   # delay between shots in normal fire mode (in seconds)
+NORMAL_SHOT_DELAY = 0.5                                   # delay between shots in normal fire mode (in seconds)
 '''defines the delay between shots in normal fire mode in seconds'''
 
 # -----------------------------------------------------------------------------------------------------------------------------
@@ -336,9 +336,8 @@ class Pickup:
                     self.sprite_index = 0
         else:
             self.tick += 1
-            if self.tick >= 15:
+            if self.tick >= 5:
                 pickups.remove(self)
-
     def draw(self):
         if self.active:
             screen.blit(PICKUP_SPRITES[self.sprite_index], self.rect)
@@ -350,6 +349,7 @@ class Pickup:
                 SwitchFireMode()
                 self.tick = 0
                 self.active = False
+                
                 #pygame.mixer.Sound.play(POWERUP_SOUND)
 
 class Arrow:
@@ -574,10 +574,12 @@ def PlayerDead():
     ''' Called when the player dies. Triggers the explosion animation and ends the game after it finishes. '''
     global game_over
     game_over = True
+    flame.set_alpha(0)
+    flame_light.set_alpha(0)
     explosions.append(Explosion(ship_rect.center, SHIP_EXPLOSION_FRAMES, SHIPEXP_FRAME_DELAY, is_player=True))
     ExplosionSound("player")
 
-def PlayMusic(track, duration=-1):
+def PlayMusic(track, duration=2.5):
     ''' Plays the specified music track. If input is "fadeout", fades out the current music over the specified duration. '''
     if track == "fadeout":
         pygame.mixer.music.fadeout(int(duration*1000))
@@ -612,7 +614,7 @@ def PlayerShoot(projectile_mode):
                 [10, 150, 255],                     # Projectile color darker blue
                 height // 120,                      # Projectile width a hundred and twentieth of screen height
                 height // 120,
-                PLAYER_SHOT_SPEED + 3
+                PLAYER_SHOT_SPEED + 5
             )
         )
         pygame.mixer.Sound.play(SHOOT_SOUND_NORMAL)
@@ -633,7 +635,7 @@ def SpawnPickup():
         ))
 
 def SwitchFireMode():
-    ''' Switches the player's fire mode. This dfunction is called when the player collects a pickup. '''
+    ''' Switches the player's fire mode. This function is called when the player collects a pickup. '''
     global firemode
     global shoot_delay
     if firemode == "normal":
@@ -680,7 +682,7 @@ def EnemySpawner(enemy_type, spawn_rate):
     # increment the count for the enemy type
     EnemySpawner.cnt[enemy_type] += 1
     # if the count for the enemy type has reached the spawn rate, spawn the enemy and reset the count
-    if EnemySpawner.cnt[enemy_type] == spawn_rate:
+    if EnemySpawner.cnt[enemy_type] >= spawn_rate:
         if enemy_type == "arrow":
             SpawnArrow()
             EnemySpawner.cnt[enemy_type] = 0
@@ -716,29 +718,28 @@ def LevelManager():
         elif level == 6.5:
             LevelTransition(7)
         elif level == 6:
-            pass
+            game_over = True
+            GameEnd("win")
         elif level == 5.5:
             LevelTransition(6)
         elif level == 5:
-            pass
-            #game_over = True
-            #GameEnd("win")
+            EnemySpawner("arrow", 20)
         elif level == 4.5:
             LevelTransition(5)
         elif level == 4:
-            EnemySpawner("arrow", 360)
-            EnemySpawner("yellow", 150)
-            EnemySpawner("grey", 180)
+            EnemySpawner("arrow", 340)
+            EnemySpawner("yellow", 140)
+            EnemySpawner("grey", 160)
         elif level == 3.5:
             LevelTransition(4)
         elif level == 3:
             EnemySpawner("arrow", 180)
-            EnemySpawner("grey", 90)
+            EnemySpawner("grey", 80)
         elif level == 2.5:
             LevelTransition(3)
         elif level == 2:
             EnemySpawner("arrow", 180)
-            EnemySpawner("yellow", 250)
+            EnemySpawner("yellow", 150)
         elif level == 1.5:
             LevelTransition(2)
         elif level == 1:
@@ -771,29 +772,31 @@ def DifficultyCheck():
     elif level == 5.5:
         LevelTransition(6)
     elif level == 5:
-        pass
+        if point_count >= 1700:
+            frame_counter = 0
+            level = 5.5
+            PlayMusic("fadeout")
     elif level == 4:
-        # if point_count >= 1350:                   # return to this, just lowered for debugging purposes
-        if point_count >= 100:
+        if point_count >= 1500:
             frame_counter = 0
             level = 4.5
-            PlayMusic("fadeout", 2.5)
+            PlayMusic("fadeout")
             SpawnPickup()
     elif level == 3:
         if point_count >= 800:
             frame_counter = 0
             level = 3.5
-            PlayMusic("fadeout", 2.5)
+            PlayMusic("fadeout")
     elif level == 2:
-        if point_count >= 500:
+        if point_count >= 550:
             frame_counter = 0
             level = 2.5
-            PlayMusic("fadeout", 2.5)
+            PlayMusic("fadeout")
     elif level == 1:
         if point_count >= 200:
             frame_counter = 0
             level = 1.5
-            PlayMusic("fadeout", 2.5)
+            PlayMusic("fadeout")
     
 # -----------------------------------------------------------------------------------------------------------------------------
 
@@ -856,7 +859,7 @@ MUSIC_PLAYLIST = [
 
 # Variables
 point_count = 0
-level = 4                   # Game starts at this level
+level = 0                   # Game starts at this level
 frame_counter = 0
 game_over = False
 firemode = "normal"
