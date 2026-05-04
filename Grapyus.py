@@ -68,7 +68,7 @@ GREY_SHOT_SPEED = 7
 '''defines the speed at which the grey fighter enemy's projectiles move in pixels per frame'''
 SHIPEXP_FRAME_DELAY = 5
 '''defines the number of frames to wait before advancing to the next frame in the player's explosion animation'''
-NORMAL_FIRERATE = 0.4                                   # delay between shots in normal fire mode (in seconds)
+NORMAL_SHOT_DELAY = 0.4                                   # delay between shots in normal fire mode (in seconds)
 '''defines the delay between shots in normal fire mode in seconds'''
 
 # -----------------------------------------------------------------------------------------------------------------------------
@@ -319,21 +319,38 @@ class Explosion:
 class Pickup:
     def __init__(self, x, y, type:int, frame_delay=2):
         self.rect = PICKUP_SPRITES[0].get_rect()
+        self.active = True
         self.rect.x = x
         self.rect.y = y
         self.sprite_index = 0
         self.frame_delay = frame_delay
         self.tick = 0
     def update(self):
-        self.rect.x -= 1                # move left across the screen
-        self.tick += 1
-        if self.tick >= self.frame_delay:
-            self.tick = 0
-            self.sprite_index = (self.sprite_index + 1)
-            if self.sprite_index >= len(PICKUP_SPRITES):
-                self.sprite_index = 0
+        if self.active:
+            self.rect.x -= 1                # move left across the screen
+            self.tick += 1
+            if self.tick >= self.frame_delay:
+                self.tick = 0
+                self.sprite_index = (self.sprite_index + 1)
+                if self.sprite_index >= len(PICKUP_SPRITES):
+                    self.sprite_index = 0
+        else:
+            self.tick += 1
+            if self.tick >= 15:
+                pickups.remove(self)
+
     def draw(self):
-        screen.blit(PICKUP_SPRITES[self.sprite_index], self.rect)
+        if self.active:
+            screen.blit(PICKUP_SPRITES[self.sprite_index], self.rect)
+        else:
+            screen.blit(PICKUP_SPRITE_EMPTY, self.rect)
+    def check(self):
+        if self.rect.colliderect(ship_rect):
+            if self.active:
+                SwitchFireMode()
+                self.tick = 0
+                self.active = False
+                #pygame.mixer.Sound.play(POWERUP_SOUND)
 
 class Arrow:
     def __init__(self, x, y, size, speed):
@@ -587,6 +604,18 @@ def PlayerShoot(projectile_mode):
             )
         )
         pygame.mixer.Sound.play(SHOOT_SOUND_NORMAL)
+    elif projectile_mode == "gatling":
+        player_projectiles.append(
+            PlayerProjectile(
+                ship_rect.x + ship_size_x,          # Projectile X in front of ship
+                ship_rect.y + ship_size_y // 2,     # Projectile Y at middle of ship height
+                [10, 150, 255],                     # Projectile color darker blue
+                height // 120,                      # Projectile width a hundred and twentieth of screen height
+                height // 120,
+                PLAYER_SHOT_SPEED + 3
+            )
+        )
+        pygame.mixer.Sound.play(SHOOT_SOUND_NORMAL)
 
 def ExplosionSound(type=-1):
     ''' Plays a random explosion sound. If type is "player", plays the player explosion sound instead. '''
@@ -602,6 +631,16 @@ def SpawnPickup():
             height//2,
             1
         ))
+
+def SwitchFireMode():
+    ''' Switches the player's fire mode. This dfunction is called when the player collects a pickup. '''
+    global firemode
+    global shoot_delay
+    if firemode == "normal":
+        firemode = "gatling"
+        shoot_delay = NORMAL_SHOT_DELAY / 2
+    elif firemode == "gatling":
+        firemode = "normal"
 
 def SpawnArrow():
     ''' Spawns a new arrow enemy at a random Y position on the right side of the screen and adds it to the enemies list. '''
@@ -773,6 +812,7 @@ GREY_FLAME = LoadImg("GreyFlame.png", GREY_SCALE)
 
 # Pickup Sprites
 PICKUP_SPRITES = LoadImgList("Pickup\\", 27, (width//20, width//20))
+PICKUP_SPRITE_EMPTY = LoadImg("Pickup\\empty.png", (width//20, width//20))
 
 # Explosion Frames
 ARROW_EXPLOSION_SCALE = width//13, width//13
@@ -839,7 +879,7 @@ stars_mover = StarsMover()
 # Game Init
 clock = pygame.time.Clock()
 last_shot = time()
-shoot_delay = NORMAL_FIRERATE
+shoot_delay = NORMAL_SHOT_DELAY
 time_start = time()
 hud = HUD()
 
@@ -972,24 +1012,25 @@ while running:
                 PlayerShoot(firemode)
                 last_shot = time()
 
-        # -----------------------------------------------------------------------------------------------------------------------------
-
-        # Update Ship Thruster Flame
-        flame_rect.midright = ship_rect.midleft
-        flame_light_rect.midright = ship_rect.midleft
-
-        # Update Ship
-        screen.blit(ship, (ship_rect.x, ship_rect.y))
-        screen.blit(flame, flame_rect)
-        screen.blit(flame_light, flame_light_rect)
-
     # -----------------------------------------------------------------------------------------------------------------------------
 
     # Update Pickups
     for pickup in pickups[:]:
         pickup.update()
         pickup.draw()
+        pickup.check()
     
+    # -----------------------------------------------------------------------------------------------------------------------------
+
+    # Update Ship Thruster Flame
+    flame_rect.midright = ship_rect.midleft
+    flame_light_rect.midright = ship_rect.midleft
+
+    # Update Ship
+    screen.blit(ship, (ship_rect.x, ship_rect.y))
+    screen.blit(flame, flame_rect)
+    screen.blit(flame_light, flame_light_rect)
+
     # -----------------------------------------------------------------------------------------------------------------------------
 
     # Update Player Projectiles
