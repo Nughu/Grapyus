@@ -82,6 +82,10 @@ clear = lambda: os.system('cls')
 '''defines a lambda function to clear the terminal'''
 clear()
 
+# Flush screen white
+makewhite = lambda: screen.fill("white")
+'''defines a lambda function to make the screen white'''
+
 # -----------------------------------------------------------------------------------------------------------------------------
 
 # Classes
@@ -195,7 +199,7 @@ class StarsMover:
         screen.blit(self.stars1, [self.stars1_curpos_x, self.stars1_curpos_y])
         screen.blit(self.stars2, [self.stars2_curpos_x, self.stars2_curpos_y])
 
-class HUD:                                                                                  # everything below here still needs docstrings, will add later cause it's eating up my copilot tokens
+class HUD:                                                                   # everything below here still needs docstrings, will add later cause it's eating up my copilot tokens
     def __init__(self):
         global point_count
         global level
@@ -216,27 +220,31 @@ class HUD:                                                                      
         screen.blit(self.points, (self.pointstr_width + 10, 10))
         screen.blit(self.levelstr, (width - (self.levelstr_width + self.level.get_width() + 10), 10))
         screen.blit(self.level, (width - (self.level.get_width() + 10), 10))
+    def FinalStats(self, header:str):
+        screen.blit(self.pause_font.render("Final Score: ", True, (0, 0, 0)), (CENTER[0] - self.pause_font.size("Final Score: " + str(point_count))[0]//2, CENTER[1] + self.start_font.size(header)[1]//2))
+        screen.blit(self.pause_font.render(str(point_count), True, (0, 255, 0)), (CENTER[0] - self.pause_font.size("Final Score: " + str(point_count))[0]//2 + self.pause_font.size("Final Score: ")[0], CENTER[1] + self.start_font.size(header)[1]//2))
     def Pause(self):
-        screen.fill("white")
+        makewhite()
         screen.blit(self.pausestr, (CENTER[0] - self.pausestr_width//2, CENTER[1] - self.pausestr_height//2))
         pygame.display.flip()
     def StartScreen(self):
-        screen.fill("white")
+        makewhite()
         screen.blit(self.start_font.render("- GAME START -", True, (0, 0, 0)), (CENTER[0] - self.start_font.size("- GAME START -")[0]//2, CENTER[1] - self.start_font.size("- GAME START -")[1]//2))
         pygame.display.flip()
     def EndScreen(self):
-        screen.fill("white")
+        makewhite()
         screen.blit(self.start_font.render("- GAME END -", True, (0, 0, 0)), (CENTER[0] - self.start_font.size("- GAME END -")[0]//2, CENTER[1] - self.start_font.size("- GAME END -")[1]//2))
+        self.FinalStats("- GAME END -")
         pygame.display.flip()
     def GameOverScreen(self):
-        screen.fill("red")
+        makewhite()
         screen.blit(self.start_font.render("- GAME OVER -", True, (0, 0, 0)), (CENTER[0] - self.start_font.size("- GAME OVER -")[0]//2, CENTER[1] - self.start_font.size("- GAME OVER -")[1]//2))
+        self.FinalStats("- GAME OVER -")
         pygame.display.flip()
     def WinScreen(self):
-        screen.fill("white")
+        makewhite()
         screen.blit(self.start_font.render("- YOU WIN! -", True, (0, 0, 0)), (CENTER[0] - self.start_font.size("- YOU WIN! -")[0]//2, CENTER[1] - self.start_font.size("- YOU WIN! -")[1]//2))
-        screen.blit(self.pause_font.render("Final Score: ", True, (0, 0, 0)), (CENTER[0] - self.pause_font.size("Final Score: " + str(point_count))[0]//2, CENTER[1] + self.start_font.size("- YOU WIN! -")[1]//2))
-        screen.blit(self.pause_font.render(str(point_count), True, (0, 255, 0)), (CENTER[0] - self.pause_font.size("Final Score: " + str(point_count))[0]//2 + self.pause_font.size("Final Score: ")[0], CENTER[1] + self.start_font.size("- YOU WIN! -")[1]//2))
+        #self.FinalStats("- YOU WIN! -")
         pygame.display.flip()
 
 class PlayerProjectile:
