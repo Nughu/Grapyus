@@ -79,12 +79,12 @@ screen = pygame.display.set_mode((width, height), display=0, vsync=0)
 
 # Initial terminal clear
 clear = lambda: os.system('cls')
-'''defines a lambda function to clear the terminal'''
+'''clears the terminal'''
 clear()
 
 # Flush screen white
 makewhite = lambda: screen.fill("white")
-'''defines a lambda function to make the screen white'''
+'''fills the screen white'''
 
 # -----------------------------------------------------------------------------------------------------------------------------
 
@@ -806,7 +806,7 @@ def DifficultyCheck():
             frame_counter = 0
             level = 1.5
             PlayMusic("fadeout")
-    
+
 # -----------------------------------------------------------------------------------------------------------------------------
 
 # Enemy list
@@ -933,7 +933,7 @@ PlayMusic(1)
 while running:
 
     # Draw Background
-    background_fader.fade()                                 # blit included
+    background_fader.fade()                                # blit included
     stars_mover.move()                                     # blit included
 
     # -----------------------------------------------------------------------------------------------------------------------------
