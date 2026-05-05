@@ -542,7 +542,6 @@ def GameEnd(end_screen="exit"):
         hud.EndScreen()
     elif end_screen == "win":
         hud.WinScreen()
-    time_end = time()
     clear()
     SaveGame()
     print(TEXT_YELLOW + "- GAME END -\n")
