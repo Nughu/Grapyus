@@ -221,6 +221,7 @@ class HUD:                                                                   # e
         screen.blit(self.levelstr, (width - (self.levelstr_width + self.level.get_width() + 10), 10))
         screen.blit(self.level, (width - (self.level.get_width() + 10), 10))
     def FinalStats(self, header:str):
+        '''Displays the final score underneath the main end screen text. Takes the string used for the main text above it in the "header" input variable  '''
         screen.blit(self.pause_font.render("Final Score: ", True, (0, 0, 0)), (CENTER[0] - self.pause_font.size("Final Score: " + str(point_count))[0]//2, CENTER[1] + self.start_font.size(header)[1]//2))
         screen.blit(self.pause_font.render(str(point_count), True, (0, 255, 0)), (CENTER[0] - self.pause_font.size("Final Score: " + str(point_count))[0]//2 + self.pause_font.size("Final Score: ")[0], CENTER[1] + self.start_font.size(header)[1]//2))
     def Pause(self):
@@ -244,7 +245,7 @@ class HUD:                                                                   # e
     def WinScreen(self):
         makewhite()
         screen.blit(self.start_font.render("- YOU WIN! -", True, (0, 0, 0)), (CENTER[0] - self.start_font.size("- YOU WIN! -")[0]//2, CENTER[1] - self.start_font.size("- YOU WIN! -")[1]//2))
-        #self.FinalStats("- YOU WIN! -")
+        self.FinalStats("- YOU WIN! -")
         pygame.display.flip()
 
 class PlayerProjectile:
@@ -560,7 +561,6 @@ def GameOver():
     pygame.mixer.music.stop()
     screen.fill("red")
     pygame.display.flip()
-    time_end = time()
     clear()
     print(TEXT_RED + "- GAME OVER -")
     print(TEXT_YELLOW + "Points collected:  " + TEXT_GREEN + str(point_count))
