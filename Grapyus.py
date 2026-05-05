@@ -262,7 +262,7 @@ class PlayerProjectile:
                 explosions.append(Explosion(enemy.rect.center, enemy.explosion_frames))
                 global point_count
                 point_count += enemy.points
-                DifficultyCheck()
+                #DifficultyCheck()
                 if self in player_projectiles:
                     player_projectiles.remove(self)
                 enemies.remove(enemy)
@@ -714,7 +714,6 @@ def LevelTransition(next_level:int, delay:int = 150):
 def LevelManager():
         ''' Manages the current level and spawns enemies accordingly. Also handles level transitions. '''
         global level
-        global frame_counter
         if level == 10:
             pass
         elif level == 9:
@@ -748,7 +747,7 @@ def LevelManager():
             LevelTransition(3)
         elif level == 2:
             EnemySpawner("arrow", 180)
-            EnemySpawner("yellow", 150)
+            EnemySpawner("yellow", 110)
         elif level == 1.5:
             LevelTransition(2)
         elif level == 1:
@@ -757,53 +756,38 @@ def LevelManager():
             LevelTransition(1)
 
 def DifficultyCheck():
-    ''' Checks the current point count and increases the level accordingly. This function is called whenever an enemy is killed to check if the player has reached the point threshold for the next level. '''
+    ''' Checks the current time and increases the level depending on the amount of passed seconds. '''
     global level
-    global frame_counter
+    curtime = GetTime()
     if level == 10:
         pass
-    elif level == 9.5:
-        LevelTransition(10)
     elif level == 9:
         pass
-    elif level == 8.5:
-        LevelTransition(9)
     elif level == 8:
         pass
-    elif level == 7.5:
-        LevelTransition(8)
     elif level == 7:
         pass    
-    elif level == 6.5:
-        LevelTransition(7)
     elif level == 6:
         pass
-    elif level == 5.5:
-        LevelTransition(6)
     elif level == 5:
-        if point_count >= 1800:
-            frame_counter = 0
+        if curtime > 130:
             level = 5.5
-            PlayMusic("fadeout")
+            PlayMusic("fadeout", 6)
     elif level == 4:
-        if point_count >= 1500:
-            frame_counter = 0
+        if curtime > 100:
             level = 4.5
             PlayMusic("fadeout", 4)
             SpawnPickup()
     elif level == 3:
-        if point_count >= 800:
-            frame_counter = 0
+        if curtime > 70:
             level = 3.5
             PlayMusic("fadeout")
     elif level == 2:
-        if point_count >= 550:
-            frame_counter = 0
+        if curtime > 40:
             level = 2.5
             PlayMusic("fadeout")
     elif level == 1:
-        if point_count >= 200:
-            frame_counter = 0
+        if curtime > 20:
             level = 1.5
             PlayMusic("fadeout")
 
@@ -867,8 +851,8 @@ MUSIC_PLAYLIST = [
     ]
 
 # Variables
-point_count = 1400
-level = 4                   # Game starts at this level
+point_count = 0
+level = 0                   # Game starts at this level
 frame_counter = 0
 game_over = False
 firemode = "normal"
@@ -1078,8 +1062,9 @@ while running:
 
     # -----------------------------------------------------------------------------------------------------------------------------
 
-    # Spawn Enemies
+    # Manage Level Structure
     if not game_over:
+        DifficultyCheck()
         LevelManager()
 
     # -----------------------------------------------------------------------------------------------------------------------------
