@@ -352,8 +352,7 @@ class Pickup:
                 SwitchFireMode()
                 self.tick = 0
                 self.active = False
-                
-                #pygame.mixer.Sound.play(POWERUP_SOUND)
+                pygame.mixer.Sound.play(PICKUP_SOUND)
 
 class Arrow:
     def __init__(self, x, y, size, speed):
@@ -586,7 +585,7 @@ def PlayerDead():
     explosions.append(Explosion(ship_rect.center, SHIP_EXPLOSION_FRAMES, SHIPEXP_FRAME_DELAY, is_player=True))
     ExplosionSound("player")
 
-def PlayMusic(track, duration=2.5):
+def PlayMusic(track, duration=3):
     ''' Plays the specified music track. If input is "fadeout", fades out the current music over the specified duration. '''
     if track == "fadeout":
         pygame.mixer.music.fadeout(int(duration*1000))
@@ -624,7 +623,7 @@ def PlayerShoot(projectile_mode):
                 PLAYER_SHOT_SPEED + 5
             )
         )
-        pygame.mixer.Sound.play(SHOOT_SOUND_NORMAL)
+        pygame.mixer.Sound.play(SHOOT_SOUND_GATLING)
 
 def ExplosionSound(type=-1):
     ''' Plays a random explosion sound. If type is "player", plays the player explosion sound instead. '''
@@ -701,7 +700,7 @@ def EnemySpawner(enemy_type, spawn_rate):
             SpawnGrey()
             EnemySpawner.cnt[enemy_type] = 0
 
-def LevelTransition(next_level:int, delay:int = 150):
+def LevelTransition(next_level:int, delay:int = 180):
     ''' Handles the transition period between levels. Waits for a certain number of frames, then increases the level and changes the music. The next_level parameter is the level that will be transitioned to after the wait. '''
     global frame_counter
     global level
@@ -770,24 +769,24 @@ def DifficultyCheck():
     elif level == 6:
         pass
     elif level == 5:
-        if curtime > 130:
+        if curtime > 140:
             level = 5.5
             PlayMusic("fadeout", 6)
     elif level == 4:
-        if curtime > 100:
+        if curtime > 110:
             level = 4.5
             PlayMusic("fadeout", 4)
             SpawnPickup()
     elif level == 3:
-        if curtime > 70:
+        if curtime > 80:
             level = 3.5
             PlayMusic("fadeout")
     elif level == 2:
-        if curtime > 40:
+        if curtime > 50:
             level = 2.5
             PlayMusic("fadeout")
     elif level == 1:
-        if curtime > 20:
+        if curtime > 30:
             level = 1.5
             PlayMusic("fadeout")
 
@@ -821,7 +820,9 @@ GREY_EXPLOSION_SCALE = width//11, width//11
 GREY_EXPLOSION_FRAMES = LoadImgList("Explosions\\Grey\\", 4, GREY_EXPLOSION_SCALE)
 
 # Sounds
-SHOOT_SOUND_NORMAL = pygame.mixer.Sound(SOUND_DIR + "Player\\shoot_normal.ogg")
+PICKUP_SOUND = pygame.mixer.Sound(SOUND_DIR + "Player\\powerup.ogg")
+SHOOT_SOUND_NORMAL = pygame.mixer.Sound(SOUND_DIR + "Player\\Shoot\\normal.ogg")
+SHOOT_SOUND_GATLING = pygame.mixer.Sound(SOUND_DIR + "Player\\Shoot\\gatling.ogg")
 EXPLOSION_SOUNDS = [
     pygame.mixer.Sound(SOUND_DIR + "Explosion\\1.ogg"),
     pygame.mixer.Sound(SOUND_DIR + "Explosion\\2.ogg"),
@@ -968,42 +969,39 @@ while running:
                 held_keys.remove("Space")
 
     # -----------------------------------------------------------------------------------------------------------------------------
-
-    # Actions
-    if not game_over:
-
-        # Movement
-        ship_velocity_x, ship_velocity_y = 0, 0
-        flame.set_alpha(0)
+    
+    # Movement
+    ship_velocity_x, ship_velocity_y = 0, 0
+    flame.set_alpha(0)
+    flame_light.set_alpha(0)
+    if "Up" in held_keys:
+        ship_velocity_y -= MOVE_SPEED
+        flame_light.set_alpha(randint(140, 160))
+    if "Down" in held_keys:
+        ship_velocity_y += MOVE_SPEED
+        flame_light.set_alpha(randint(140, 160))
+    if "Left" in held_keys:
+        ship_velocity_x -= MOVE_SPEED
+        flame_light.set_alpha(randint(60, 80))
+    if "Right" in held_keys:
+        ship_velocity_x += MOVE_SPEED
+        flame.set_alpha(randint(170, 210))
         flame_light.set_alpha(0)
-        if "Up" in held_keys:
-            ship_velocity_y -= MOVE_SPEED
-            flame_light.set_alpha(randint(140, 160))
-        if "Down" in held_keys:
-            ship_velocity_y += MOVE_SPEED
-            flame_light.set_alpha(randint(140, 160))
-        if "Left" in held_keys:
-            ship_velocity_x -= MOVE_SPEED
-            flame_light.set_alpha(randint(60, 80))
-        if "Right" in held_keys:
-            ship_velocity_x += MOVE_SPEED
-            flame.set_alpha(randint(170, 210))
-            flame_light.set_alpha(0)
-        elif "Up" not in held_keys and "Down" not in held_keys and "Left" not in held_keys:
-            flame_light.set_alpha(randint(100, 120))
-        ship_rect.x += ship_velocity_x
-        ship_rect.y += ship_velocity_y
-        if ship_rect.x <= 0:
-            ship_rect.x = 0
-        if ship_rect.y <=0:
-            ship_rect.y = 0
-        if ship_rect.x >= width - ship_size_x:
-            ship_rect.x = width - ship_size_x
-        if ship_rect.y >= height - ship_size_y:
-            ship_rect.y = height - ship_size_y
-        ship_hitbox.center = ship_rect.center
+    elif "Up" not in held_keys and "Down" not in held_keys and "Left" not in held_keys:
+        flame_light.set_alpha(randint(100, 120))
+    ship_rect.x += ship_velocity_x
+    ship_rect.y += ship_velocity_y
+    if ship_rect.x <= 0:
+        ship_rect.x = 0
+    if ship_rect.y <=0:
+        ship_rect.y = 0
+    if ship_rect.x >= width - ship_size_x:
+        ship_rect.x = width - ship_size_x
+    if ship_rect.y >= height - ship_size_y:
+        ship_rect.y = height - ship_size_y
+    ship_hitbox.center = ship_rect.center
 
-        if "Space" in held_keys:
+    if "Space" in held_keys:
             if time() - last_shot > shoot_delay:
                 PlayerShoot(firemode)
                 last_shot = time()
@@ -1063,9 +1061,7 @@ while running:
     # -----------------------------------------------------------------------------------------------------------------------------
 
     # Manage Level Structure
-    if not game_over:
-        DifficultyCheck()
-        LevelManager()
+    LevelManager()
 
     # -----------------------------------------------------------------------------------------------------------------------------
 
