@@ -751,7 +751,11 @@ def LevelManager():
         elif level == 1:
             EnemySpawner("arrow", 30)
         elif level == 0:
-            LevelTransition(1)
+            global frame_counter                # Avoid playing music 1 twice by not using LevelTransition()
+            frame_counter += 1
+            if frame_counter >= 180:
+                level = 1
+                frame_counter = 0
 
 def DifficultyCheck():
     ''' Checks the current time and increases the level depending on the amount of passed seconds. '''
@@ -1061,6 +1065,7 @@ while running:
 
     # Manage Level Structure
     LevelManager()
+    DifficultyCheck()
 
     # -----------------------------------------------------------------------------------------------------------------------------
 
