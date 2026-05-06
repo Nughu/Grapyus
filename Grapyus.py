@@ -490,7 +490,7 @@ class Grey:
                     GREY_SHOT_SPEED
                 )
             )
-            pygame.mixer.Sound.play(choice(YELLOW_SHOOT_SOUNDS))
+            pygame.mixer.Sound.play(choice(GREY_SHOOT_SOUNDS))
             self.shot_count = 0
 
 # -----------------------------------------------------------------------------------------------------------------------------
@@ -849,6 +849,12 @@ YELLOW_SHOOT_SOUNDS = [
     pygame.mixer.Sound(SOUND_DIR + "Yellow\\Shoot\\3.ogg"),
     pygame.mixer.Sound(SOUND_DIR + "Yellow\\Shoot\\4.ogg")
 ]
+GREY_SHOOT_SOUNDS = [
+    pygame.mixer.Sound(SOUND_DIR + "Grey\\Shoot\\1.ogg"),
+    pygame.mixer.Sound(SOUND_DIR + "Grey\\Shoot\\2.ogg"),
+    pygame.mixer.Sound(SOUND_DIR + "Grey\\Shoot\\3.ogg"),
+    pygame.mixer.Sound(SOUND_DIR + "Grey\\Shoot\\4.ogg")
+]
 
 # Music List
 MUSIC_PLAYLIST = [
@@ -958,6 +964,7 @@ while running:
                     paused = True
                     hud.Pause()
                     PlayMusic("fadeout", 0.5)
+                    held_keys.clear()
                     while paused:
                         for event in pygame.event.get():
                             if event.type == KEYDOWN:
@@ -968,17 +975,20 @@ while running:
                                     GameEnd()
             elif event.type == KEYUP:
                 # Movement
-                if event.key == K_a:
-                    held_keys.remove("Left")
-                if event.key == K_d:
-                    held_keys.remove("Right")
-                if event.key == K_w:
-                    held_keys.remove("Up")
-                if event.key == K_s:
-                    held_keys.remove("Down")
-                # Action Keys
-                if event.key == K_SPACE:
-                    held_keys.remove("Space")
+                try:
+                    if event.key == K_a:
+                        held_keys.remove("Left")
+                    if event.key == K_d:
+                        held_keys.remove("Right")
+                    if event.key == K_w:
+                        held_keys.remove("Up")
+                    if event.key == K_s:
+                        held_keys.remove("Down")
+                    # Action Keys
+                    if event.key == K_SPACE:
+                        held_keys.remove("Space")
+                except Exception:
+                    pass
 
         # -----------------------------------------------------------------------------------------------------------------------------
         
