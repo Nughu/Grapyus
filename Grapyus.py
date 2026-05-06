@@ -1,4 +1,5 @@
 import os, sys, contextlib
+import json
 from time import sleep, time
 from random import randint, choice
 with contextlib.redirect_stdout(None):
@@ -8,11 +9,28 @@ from pygame.locals import *
 from colorama import Fore, Style
 from pathlib import Path
 
+
 # -----------------------------------------------------------------------------------------------------------------------------
 
-# General Settings
-width, height = 1280, 720
-music_volume = 0.7
+# General Settings will be found in the .json file now
+try:
+    # tries to load settings
+    with open(Path("General Settings.json"), "r") as file:
+        settings = json.load(file)
+        width = settings["resolution"]["width"]
+        height = settings["resolution"]["height"]
+        music_volume = settings["music_volume"]
+# if any error happens, load default settings.
+except FileNotFoundError:
+    print("Error: General Settings.json not found. Default settings will be used.")
+    width = 1280
+    height = 720
+    music_volume = 0.7
+except Exception as e:
+    print(f"Error loading settings: {e}. Default settings will be used.")
+    width = 1280
+    height = 720
+    music_volume = 0.7
 
 # -----------------------------------------------------------------------------------------------------------------------------
 
