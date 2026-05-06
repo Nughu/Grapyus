@@ -772,24 +772,24 @@ def DifficultyCheck():
     elif level == 6:
         pass
     elif level == 5:
-        if curtime > 140:
+        if curtime > lvl_time[4]:
             level = 5.5
             PlayMusic("fadeout", 6)
     elif level == 4:
-        if curtime > 110:
+        if curtime > lvl_time[3]:
             level = 4.5
             PlayMusic("fadeout", 4)
             SpawnPickup()
     elif level == 3:
-        if curtime > 80:
+        if curtime > lvl_time[2]:
             level = 3.5
             PlayMusic("fadeout")
     elif level == 2:
-        if curtime > 50:
+        if curtime > lvl_time[1]:
             level = 2.5
             PlayMusic("fadeout")
     elif level == 1:
-        if curtime > 30:
+        if curtime > lvl_time[0]:
             level = 1.5
             PlayMusic("fadeout")
 
@@ -799,6 +799,15 @@ def DifficultyCheck():
 EnemySpawner.cnt = {}
 for enemy in ["arrow", "yellow", "grey"]:
     EnemySpawner.cnt[enemy] = 0
+
+# Level timing config
+lvl_time = [
+    30,
+    50,
+    80,
+    110,
+    140
+]
 
 # Enemy Sprites
 ARROW_SPRITE = LoadImg("Arrow.png", ARROW_SCALE)
