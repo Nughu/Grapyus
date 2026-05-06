@@ -802,7 +802,7 @@ for enemy in ["arrow", "yellow", "grey"]:
 
 # Level timing config
 lvl_time = [
-    30,
+    20,
     50,
     80,
     110,
