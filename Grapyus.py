@@ -739,13 +739,12 @@ def LevelManager():
         elif level == 3.5:
             LevelTransition(4)
         elif level == 3:
-            EnemySpawner("arrow", 180)
             EnemySpawner("grey", 80)
         elif level == 2.5:
             LevelTransition(3)
         elif level == 2:
-            EnemySpawner("arrow", 180)
-            EnemySpawner("yellow", 110)
+            EnemySpawner("arrow", 240)
+            EnemySpawner("yellow", 90)
         elif level == 1.5:
             LevelTransition(2)
         elif level == 1:
@@ -865,7 +864,7 @@ MUSIC_PLAYLIST = [
 
 # Variables
 point_count = 0
-level = 0                   # Game starts at this level
+level = 2                   # Game starts at this level
 frame_counter = 0
 game_over = False
 firemode = "normal"
@@ -933,90 +932,91 @@ while running:
     background_fader.fade()                                # blit included
     stars_mover.move()                                     # blit included
 
-    # -----------------------------------------------------------------------------------------------------------------------------
+        # -----------------------------------------------------------------------------------------------------------------------------
 
-    # Keyboard Input
-    for event in pygame.event.get():
-        if event.type == KEYDOWN:
-            # Movement Keys
-            if event.key == K_a:
-                held_keys.append("Left")
-            if event.key == K_d:
-                held_keys.append("Right")
-            if event.key == K_w:
-                held_keys.append("Up")
-            if event.key == K_s:
-                held_keys.append("Down")
-            # Action Keys
-            if event.key == K_SPACE:
-                held_keys.append("Space")
-            # Exit Game
-            if event.key == K_ESCAPE:
-                GameEnd()
-            # Pause Game
-            if event.key == K_TAB:
-                paused = True
-                hud.Pause()
-                PlayMusic("fadeout", 0.5)
-                while paused:
-                    for event in pygame.event.get():
-                        if event.type == KEYDOWN:
-                            if event.key == K_TAB:
-                                paused = False
-                                pygame.mixer.music.play(-1, 0.0, 250)
-                            if event.key == K_ESCAPE:
-                                GameEnd()
-        elif event.type == KEYUP:
-            # Movement
-            if event.key == K_a:
-                held_keys.remove("Left")
-            if event.key == K_d:
-                held_keys.remove("Right")
-            if event.key == K_w:
-                held_keys.remove("Up")
-            if event.key == K_s:
-                held_keys.remove("Down")
-            # Action Keys
-            if event.key == K_SPACE:
-                held_keys.remove("Space")
+    if not game_over:
+        # Keyboard Input
+        for event in pygame.event.get():
+            if event.type == KEYDOWN:
+                # Movement Keys
+                if event.key == K_a:
+                    held_keys.append("Left")
+                if event.key == K_d:
+                    held_keys.append("Right")
+                if event.key == K_w:
+                    held_keys.append("Up")
+                if event.key == K_s:
+                    held_keys.append("Down")
+                # Action Keys
+                if event.key == K_SPACE:
+                    held_keys.append("Space")
+                # Exit Game
+                if event.key == K_ESCAPE:
+                    GameEnd()
+                # Pause Game
+                if event.key == K_TAB:
+                    paused = True
+                    hud.Pause()
+                    PlayMusic("fadeout", 0.5)
+                    while paused:
+                        for event in pygame.event.get():
+                            if event.type == KEYDOWN:
+                                if event.key == K_TAB:
+                                    paused = False
+                                    pygame.mixer.music.play(-1, 0.0, 250)
+                                if event.key == K_ESCAPE:
+                                    GameEnd()
+            elif event.type == KEYUP:
+                # Movement
+                if event.key == K_a:
+                    held_keys.remove("Left")
+                if event.key == K_d:
+                    held_keys.remove("Right")
+                if event.key == K_w:
+                    held_keys.remove("Up")
+                if event.key == K_s:
+                    held_keys.remove("Down")
+                # Action Keys
+                if event.key == K_SPACE:
+                    held_keys.remove("Space")
 
-    # -----------------------------------------------------------------------------------------------------------------------------
-    
-    # Movement
-    ship_velocity_x, ship_velocity_y = 0, 0
-    flame.set_alpha(0)
-    flame_light.set_alpha(0)
-    if "Up" in held_keys:
-        ship_velocity_y -= MOVE_SPEED
-        flame_light.set_alpha(randint(140, 160))
-    if "Down" in held_keys:
-        ship_velocity_y += MOVE_SPEED
-        flame_light.set_alpha(randint(140, 160))
-    if "Left" in held_keys:
-        ship_velocity_x -= MOVE_SPEED
-        flame_light.set_alpha(randint(60, 80))
-    if "Right" in held_keys:
-        ship_velocity_x += MOVE_SPEED
-        flame.set_alpha(randint(170, 210))
+        # -----------------------------------------------------------------------------------------------------------------------------
+        
+        # Movement
+        ship_velocity_x, ship_velocity_y = 0, 0
+        flame.set_alpha(0)
         flame_light.set_alpha(0)
-    elif "Up" not in held_keys and "Down" not in held_keys and "Left" not in held_keys:
-        flame_light.set_alpha(randint(100, 120))
-    ship_rect.x += ship_velocity_x
-    ship_rect.y += ship_velocity_y
-    if ship_rect.x <= 0:
-        ship_rect.x = 0
-    if ship_rect.y <=0:
-        ship_rect.y = 0
-    if ship_rect.x >= width - ship_size_x:
-        ship_rect.x = width - ship_size_x
-    if ship_rect.y >= height - ship_size_y:
-        ship_rect.y = height - ship_size_y
-    ship_hitbox.center = ship_rect.center
+        if "Up" in held_keys:
+            ship_velocity_y -= MOVE_SPEED
+            flame_light.set_alpha(randint(140, 160))
+        if "Down" in held_keys:
+            ship_velocity_y += MOVE_SPEED
+            flame_light.set_alpha(randint(140, 160))
+        if "Left" in held_keys:
+            ship_velocity_x -= MOVE_SPEED
+            flame_light.set_alpha(randint(60, 80))
+        if "Right" in held_keys:
+            ship_velocity_x += MOVE_SPEED
+            flame.set_alpha(randint(170, 210))
+            flame_light.set_alpha(0)
+        elif "Up" not in held_keys and "Down" not in held_keys and "Left" not in held_keys:
+            flame_light.set_alpha(randint(100, 120))
+        ship_rect.x += ship_velocity_x
+        ship_rect.y += ship_velocity_y
+        if ship_rect.x <= 0:
+            ship_rect.x = 0
+        if ship_rect.y <=0:
+            ship_rect.y = 0
+        if ship_rect.x >= width - ship_size_x:
+            ship_rect.x = width - ship_size_x
+        if ship_rect.y >= height - ship_size_y:
+            ship_rect.y = height - ship_size_y
+        ship_hitbox.center = ship_rect.center
 
-    if "Space" in held_keys:
-            if time() - last_shot > shoot_delay:
-                PlayerShoot(firemode)
-                last_shot = time()
+        if "Space" in held_keys:
+                if time() - last_shot > shoot_delay:
+                    PlayerShoot(firemode)
+                    last_shot = time()
 
     # -----------------------------------------------------------------------------------------------------------------------------
 
@@ -1025,19 +1025,20 @@ while running:
         pickup.update()
         pickup.draw()
         pickup.check()
-    
-    # -----------------------------------------------------------------------------------------------------------------------------
+        
+        # -----------------------------------------------------------------------------------------------------------------------------
 
-    # Update Ship Thruster Flame
-    flame_rect.midright = ship_rect.midleft
-    flame_light_rect.midright = ship_rect.midleft
+        if not game_over:
+            # Update Ship Thruster Flame
+            flame_rect.midright = ship_rect.midleft
+            flame_light_rect.midright = ship_rect.midleft
 
-    # Update Ship
-    screen.blit(ship, (ship_rect.x, ship_rect.y))
-    screen.blit(flame, flame_rect)
-    screen.blit(flame_light, flame_light_rect)
+            # Update Ship
+            screen.blit(ship, (ship_rect.x, ship_rect.y))
+            screen.blit(flame, flame_rect)
+            screen.blit(flame_light, flame_light_rect)
 
-    # -----------------------------------------------------------------------------------------------------------------------------
+        # -----------------------------------------------------------------------------------------------------------------------------
 
     # Update Player Projectiles
     for projectile in player_projectiles[:]:
@@ -1047,7 +1048,7 @@ while running:
         if projectile.rect.x > width:
             if projectile in player_projectiles:
                 player_projectiles.remove(projectile)
-    
+        
     # Update Enemies
     for enemy in enemies[:]:
         enemy.update()
