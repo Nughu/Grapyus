@@ -1026,17 +1026,17 @@ while running:
         pickup.draw()
         pickup.check()
         
-        # -----------------------------------------------------------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------------------------------------------------------
 
-        if not game_over:
-            # Update Ship Thruster Flame
-            flame_rect.midright = ship_rect.midleft
-            flame_light_rect.midright = ship_rect.midleft
+    if not game_over:
+        # Update Ship Thruster Flame
+        flame_rect.midright = ship_rect.midleft
+        flame_light_rect.midright = ship_rect.midleft
 
-            # Update Ship
-            screen.blit(ship, (ship_rect.x, ship_rect.y))
-            screen.blit(flame, flame_rect)
-            screen.blit(flame_light, flame_light_rect)
+        # Update Ship
+        screen.blit(ship, (ship_rect.x, ship_rect.y))
+        screen.blit(flame, flame_rect)
+        screen.blit(flame_light, flame_light_rect)
 
         # -----------------------------------------------------------------------------------------------------------------------------
 
