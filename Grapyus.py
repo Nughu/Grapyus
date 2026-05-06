@@ -864,7 +864,7 @@ MUSIC_PLAYLIST = [
 
 # Variables
 point_count = 0
-level = 2                   # Game starts at this level
+level = 0                   # Game starts at this level
 frame_counter = 0
 game_over = False
 firemode = "normal"
