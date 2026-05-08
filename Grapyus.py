@@ -6,6 +6,7 @@ with contextlib.redirect_stdout(None):
 from pygame import font
 from pygame.locals import *
 from colorama import Fore, Style
+from pathlib import Path
 
 # -----------------------------------------------------------------------------------------------------------------------------
 
@@ -18,11 +19,11 @@ music_volume = 0.7
 # Constants
 CENTER = width//2, height//2
 '''defines the center of the screen'''
-IMG_DIR = ".\\Images\\"
+IMG_DIR = Path("./Images/")
 '''defines the directory where all images are stored'''
-SOUND_DIR = ".\\Sounds\\"
+SOUND_DIR = Path("./Sounds/")
 '''defines the directory where all sounds are stored'''
-SAVE_DIR = ".\\Save\\"
+SAVE_DIR = Path("./Save/")
 '''defines the directory where the save file is stored'''
 TEXT_YELLOW = Fore.YELLOW
 '''defines the color for yellow text in the terminal'''
@@ -203,9 +204,9 @@ class HUD:                                                                   # e
     def __init__(self):
         global point_count
         global level
-        self.points_font = pygame.font.Font(IMG_DIR + "KodeMono.ttf", 20)
-        self.pause_font = pygame.font.Font(IMG_DIR + "KodeMono.ttf", 40)
-        self.start_font = pygame.font.Font(IMG_DIR + "KodeMono.ttf", 80)
+        self.points_font = pygame.font.Font(IMG_DIR / "KodeMono.ttf", 20)
+        self.pause_font = pygame.font.Font(IMG_DIR / "KodeMono.ttf", 40)
+        self.start_font = pygame.font.Font(IMG_DIR / "KodeMono.ttf", 80)
         self.levelstr = self.points_font.render("Level: ", True, (255, 255, 255))
         self.levelstr_width = self.levelstr.get_width()
         self.pointstr = self.points_font.render("Points: ", True, (255, 255, 255))
@@ -498,21 +499,21 @@ class Grey:
 # Functions
 def LoadImg(image, size):
     ''' Loads and scales an image from the Images folder. Returns the image as a pygame surface. '''
-    img_unscaled = pygame.image.load(IMG_DIR + image)
+    img_unscaled = pygame.image.load(IMG_DIR / image)
     img_unscaled.convert()
     img = pygame.transform.scale(img_unscaled, size) 
     return img
 
-def LoadImgList(path:str, file_count:int, size:tuple):
+def LoadImgList(path:Path, file_count:int, size:tuple):
     list = []
     for i in range(file_count):
-        list.append(LoadImg(f"{path}{i+1}.png", size))
+        list.append(LoadImg(path / f"{i+1}.png", size))
     return list
 
 def LoadGame():
     ''' Loads the saved point count from the save file. If no save file exists, returns 0. '''
-    if os.path.exists(SAVE_DIR + "save.lol"):
-        with open((SAVE_DIR + "save.lol"), "r") as savefile:
+    if os.path.exists(SAVE_DIR / "save.lol"):
+        with open((SAVE_DIR / "save.lol"), "r") as savefile:
             loaded_game = savefile.read()
             savefile.close()
             return int(loaded_game)
@@ -523,7 +524,7 @@ def LoadGame():
 
 def SaveGame():
     ''' Saves the current point count to the save file. If no save file exists, creates one. '''
-    with open ((SAVE_DIR + "save.lol"), "w") as savefile:
+    with open ((SAVE_DIR / "save.lol"), "w") as savefile:
         savefile.write(str(point_count))
         savefile.close()
 
@@ -589,11 +590,11 @@ def PlayMusic(track, duration=3):
     if track == "fadeout":
         pygame.mixer.music.fadeout(int(duration*1000))
     elif isinstance(track, int):
-        pygame.mixer.music.load((SOUND_DIR + "Music\\" + MUSIC_PLAYLIST[track-1]))
+        pygame.mixer.music.load((SOUND_DIR / "Music" / MUSIC_PLAYLIST[track-1]))
         pygame.mixer.music.set_volume(music_volume)
         pygame.mixer.music.play(-1, 0.0)
     elif isinstance(track, str):
-        pygame.mixer.music.load((SOUND_DIR + "Music\\" + track))
+        pygame.mixer.music.load((SOUND_DIR / "Music" / track))
         pygame.mixer.music.set_volume(music_volume)
         pygame.mixer.music.play(-1, 0.0)
 
@@ -817,43 +818,43 @@ GREY_SPRITE = LoadImg("GreyFighter.png", GREY_SCALE)
 GREY_FLAME = LoadImg("GreyFlame.png", GREY_SCALE)
 
 # Pickup Sprites
-PICKUP_SPRITES = LoadImgList("Pickup\\", 27, (width//20, width//20))
-PICKUP_SPRITE_EMPTY = LoadImg("Pickup\\empty.png", (width//20, width//20))
+PICKUP_SPRITES = LoadImgList(Path("Pickup/"), 27, (width//20, width//20))
+PICKUP_SPRITE_EMPTY = LoadImg(Path("Pickup/empty.png"), (width//20, width//20))
 
 # Explosion Frames
 ARROW_EXPLOSION_SCALE = width//13, width//13
-ARROW_EXPLOSION_FRAMES = LoadImgList("Explosions\\Arrow\\", 4, ARROW_EXPLOSION_SCALE)
+ARROW_EXPLOSION_FRAMES = LoadImgList(Path("Explosions/Arrow/"), 4, ARROW_EXPLOSION_SCALE)
 SHIP_EXPLOSION_SCALE = width//10, width//10
-SHIP_EXPLOSION_FRAMES = LoadImgList("Explosions\\Ship\\", 4, SHIP_EXPLOSION_SCALE)
+SHIP_EXPLOSION_FRAMES = LoadImgList(Path("Explosions/Ship/"), 4, SHIP_EXPLOSION_SCALE)
 YELLOW_EXPLOSION_SCALE = width//12, width//12
-YELLOW_EXPLOSION_FRAMES = LoadImgList("Explosions\\YellowFighter\\", 4, YELLOW_EXPLOSION_SCALE)
+YELLOW_EXPLOSION_FRAMES = LoadImgList(Path("Explosions/YellowFighter/"), 4, YELLOW_EXPLOSION_SCALE)
 GREY_EXPLOSION_SCALE = width//11, width//11
-GREY_EXPLOSION_FRAMES = LoadImgList("Explosions\\Grey\\", 4, GREY_EXPLOSION_SCALE)
+GREY_EXPLOSION_FRAMES = LoadImgList(Path("Explosions/Grey/"), 4, GREY_EXPLOSION_SCALE)
 
 # Sounds
-PICKUP_SOUND = pygame.mixer.Sound(SOUND_DIR + "Player\\powerup.ogg")
-SHOOT_SOUND_NORMAL = pygame.mixer.Sound(SOUND_DIR + "Player\\Shoot\\normal.ogg")
-SHOOT_SOUND_GATLING = pygame.mixer.Sound(SOUND_DIR + "Player\\Shoot\\gatling.ogg")
+PICKUP_SOUND = pygame.mixer.Sound(SOUND_DIR / "Player" / "powerup.ogg")
+SHOOT_SOUND_NORMAL = pygame.mixer.Sound(SOUND_DIR / "Player" / "Shoot" / "normal.ogg")
+SHOOT_SOUND_GATLING = pygame.mixer.Sound(SOUND_DIR / "Player" / "Shoot" / "gatling.ogg")
 EXPLOSION_SOUNDS = [
-    pygame.mixer.Sound(SOUND_DIR + "Explosion\\1.ogg"),
-    pygame.mixer.Sound(SOUND_DIR + "Explosion\\2.ogg"),
-    pygame.mixer.Sound(SOUND_DIR + "Explosion\\3.ogg"),
-    pygame.mixer.Sound(SOUND_DIR + "Explosion\\4.ogg"),
-    pygame.mixer.Sound(SOUND_DIR + "Explosion\\5.ogg"),
-    pygame.mixer.Sound(SOUND_DIR + "Explosion\\6.ogg")
+    pygame.mixer.Sound(SOUND_DIR / "Explosion" / "1.ogg"),
+    pygame.mixer.Sound(SOUND_DIR / "Explosion" / "2.ogg"),
+    pygame.mixer.Sound(SOUND_DIR / "Explosion" / "3.ogg"),
+    pygame.mixer.Sound(SOUND_DIR / "Explosion" / "4.ogg"),
+    pygame.mixer.Sound(SOUND_DIR / "Explosion/5.ogg"),
+    pygame.mixer.Sound(SOUND_DIR / "Explosion/6.ogg")
 ]
-PLAYER_EXPLOSION_SOUND = pygame.mixer.Sound(SOUND_DIR + "Player\\explode.ogg")
+PLAYER_EXPLOSION_SOUND = pygame.mixer.Sound(SOUND_DIR / "Player/explode.ogg")
 YELLOW_SHOOT_SOUNDS = [
-    pygame.mixer.Sound(SOUND_DIR + "Yellow\\Shoot\\1.ogg"),
-    pygame.mixer.Sound(SOUND_DIR + "Yellow\\Shoot\\2.ogg"),
-    pygame.mixer.Sound(SOUND_DIR + "Yellow\\Shoot\\3.ogg"),
-    pygame.mixer.Sound(SOUND_DIR + "Yellow\\Shoot\\4.ogg")
+    pygame.mixer.Sound(SOUND_DIR / "Yellow/Shoot/1.ogg"),
+    pygame.mixer.Sound(SOUND_DIR / "Yellow/Shoot/2.ogg"),
+    pygame.mixer.Sound(SOUND_DIR / "Yellow/Shoot/3.ogg"),
+    pygame.mixer.Sound(SOUND_DIR / "Yellow/Shoot/4.ogg")
 ]
 GREY_SHOOT_SOUNDS = [
-    pygame.mixer.Sound(SOUND_DIR + "Grey\\Shoot\\1.ogg"),
-    pygame.mixer.Sound(SOUND_DIR + "Grey\\Shoot\\2.ogg"),
-    pygame.mixer.Sound(SOUND_DIR + "Grey\\Shoot\\3.ogg"),
-    pygame.mixer.Sound(SOUND_DIR + "Grey\\Shoot\\4.ogg")
+    pygame.mixer.Sound(SOUND_DIR / "Grey/Shoot/1.ogg"),
+    pygame.mixer.Sound(SOUND_DIR / "Grey/Shoot/2.ogg"),
+    pygame.mixer.Sound(SOUND_DIR / "Grey/Shoot/3.ogg"),
+    pygame.mixer.Sound(SOUND_DIR / "Grey/Shoot/4.ogg")
 ]
 
 # Music List
