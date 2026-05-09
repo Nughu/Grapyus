@@ -724,10 +724,11 @@ def LevelManager():
         elif level == 6.5:
             LevelTransition(7)
         elif level == 6:
+            pass
+        elif level == 5.5:
             game_over = True
             GameEnd("win")
-        elif level == 5.5:
-            LevelTransition(6)
+            #LevelTransition(6)
         elif level == 5:
             EnemySpawner("arrow", 10)
             EnemySpawner("yellow", 150)
@@ -774,7 +775,7 @@ def DifficultyCheck():
     elif level == 5:
         if curtime > lvl_time[4]:
             level = 5.5
-            PlayMusic("fadeout", 6)
+            #PlayMusic("fadeout", 6)
     elif level == 4:
         if curtime > lvl_time[3]:
             level = 4.5
