@@ -618,7 +618,7 @@ def PlayerShoot(projectile_mode):
                 ship_rect.x + ship_size_x,          # Projectile X in front of ship
                 ship_rect.y + ship_size_y // 2,     # Projectile Y at middle of ship height
                 [10, 150, 255],                     # Projectile color darker blue
-                height // 120,                      # Projectile width a hundred and twentieth of screen height
+                height // 100,                      # Projectile width a hundred and twentieth of screen height
                 height // 120,
                 PLAYER_SHOT_SPEED + 5
             )
