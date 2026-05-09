@@ -505,6 +505,7 @@ def LoadImg(image, size):
     return img
 
 def LoadImgList(path:Path, file_count:int, size:tuple):
+    ''' Loads and scales a list of images from the Images folder. Returns a list containing pygame surfaces. '''
     list = []
     for i in range(file_count):
         list.append(LoadImg(path / f"{i+1}.png", size))
