@@ -2,7 +2,7 @@
 
   <img src="./Images/GithubBanner.png" alt="Github banner" width="1080" height="383" />
 
-  <h2 style="color:#f0f6fc;">A Gradius clone made in Python using pygame</h2>
+  <h2 style="color:#f0f6fc;">A Gradius clone made in Python using pygame.</h2>
 </div>
 <img width="1282" height="752" alt="image" src="https://github.com/user-attachments/assets/14066b27-9920-4b33-b8ee-2840c01edcc8" /></br>
 <p>
